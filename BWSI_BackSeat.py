@@ -29,7 +29,7 @@ class BackSeat():
         self.__start_time = self.__current_time
         self.__warp = warp
         
-        self.__autonomy = AUVController()
+        self.__autonomy = AUVController() #AUV Controller is here!
     
     def run(self):
         try:
@@ -61,7 +61,10 @@ class BackSeat():
                 time.sleep(1/self.__warp)
 
                 ### self.__autonomy.decide() probably goes here!
-                
+
+                # needed: get a command from AUV Controller
+                # and convert the command to BPRMB request
+
                 ### turn your output message into a BPRMB request! 
                 
                 # ------------------------------------------------------------ #
@@ -109,6 +112,9 @@ class BackSeat():
         # STATE IN THE CONTROLLER!
         
         ### self.__autonomy.update_state() probably goes here!
+
+        # needed change: pass BFNVG message to update_state() to 
+        # update information in the AUV controller
         pass
         
     def send_message(self, msg):

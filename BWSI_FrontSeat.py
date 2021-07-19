@@ -63,6 +63,9 @@ class FrontSeat():
             
     def parse_payload_command(self, msg):
         # the only one I care about for now is BPRMB
+        # this parses requests in BPRMB format
+        # only takes requests for rudder and RPM
+
         vals = msg.split(',')
         if vals[0] == '$BPRMB':
                 
@@ -83,6 +86,7 @@ class FrontSeat():
                 speed_mode = int(vals[6])
                 if speed_mode == 0:
                     RPM = int(vals[5])
+                    # needs to be integer and below maximum
                     print(f"SETTING THRUSTER TO {RPM} RPM")
                     self.__vehicle.set_rpm(RPM)
                 elif speed_mode == 1:
