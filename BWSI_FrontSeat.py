@@ -21,21 +21,21 @@ class FrontSeat():
     def __init__(self, port=8000, warp=1):
         # start up the vehicle, in setpoint mode
         self.__vehicle = Sandshark(latlon=(42.3428096, -71.0901760),
-                                   depth=1.0, 
+                                   depth=1.0,
                                    speed_knots=0.0,
                                    heading=70.0,
                                    rudder_position=0.0,
                                    engine_speed='STOP',
                                    engine_direction='AHEAD',
                                    datum=(42.3,-71.1))
-        
+
         # front seat acts as server
         self.__server = SandsharkServer(port=port)
         self.__current_time = time.time()
         self.__start_time = self.__current_time
         self.__warp = warp
-    
-    
+
+
     def run(self):
         try:
             # start up the server
@@ -48,24 +48,24 @@ class FrontSeat():
                 msg = self.__vehicle.update_state(delta_time)
                 self.__server.send_command(msg)
                 self.__current_time = now
-                
+
                 msgs = self.__server.receive_mail()
                 if len(msgs) > 0:
                     print("\nReceived from backseat:")
                     for msg in msgs:
                         self.parse_payload_command(str(msg, 'utf-8'))
                         print(f"{str(msg, 'utf-8')}")
-                
+
                 time.sleep(1/self.__warp)
         except:
             self.__server.cleanup()
             server.join()
-            
+
     def parse_payload_command(self, msg):
         # the only one I care about for now is BPRMB
         vals = msg.split(',')
         if vals[0] == '$BPRMB':
-                
+
             # heading / rudder request
             if vals[2] != '':
                 heading_mode = int(vals[7][:-3])
@@ -77,7 +77,7 @@ class FrontSeat():
                     rudder = float(vals[2])
                     print(f"SETTING RUDDER TO {rudder} DEGREES")
                     self.__vehicle.set_rudder(rudder)
-                
+
             # speed request
             if vals[5] != '':
                 speed_mode = int(vals[6])
@@ -94,11 +94,11 @@ def main():
         port = sys.argv[1]
     else:
         port = 8042
-        
+
     print(f"port = {port}")
-        
+
     front_seat = FrontSeat(port=port)
     front_seat.run()
 
 if __name__ == '__main__':
-    main()    
+    main()
