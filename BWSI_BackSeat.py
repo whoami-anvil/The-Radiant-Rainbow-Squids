@@ -118,10 +118,17 @@ class BackSeat():
         pass
         
     def send_message(self, msg):
+        """
+        prints message to the terminal
+        """
         print(f"sending message {msg}...")
         self.__client.send_message(msg)    
         
     def send_status(self):
+        """
+        creates message to send the status of the AUV
+        message in BPSTS format, including time, 1, and message that Autonomy is working
+        """
         #print("sending status...")
         self.__current_time = time.time()
         hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
