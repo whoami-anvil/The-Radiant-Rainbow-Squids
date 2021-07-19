@@ -141,6 +141,9 @@ class BackSeat():
     
             
 def main():
+    """
+    main function - run this on Desktop
+    """
     if len(sys.argv) > 1:
         host = sys.argv[1]
     else:
