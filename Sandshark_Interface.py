@@ -80,8 +80,8 @@ class SandsharkServer():
                     if s in outputs:
                         outputs.remove(s)
                     s.close()                
-            except:
-                self.cleanup()
+        except:
+            self.cleanup()
             
     # send message to the payload - try without a worker thread for now
     def send_command(self, cmd):
