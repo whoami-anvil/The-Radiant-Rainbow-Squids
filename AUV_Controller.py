@@ -22,6 +22,7 @@ class AUVController ():
         self.__desired_heading = None
 
     def initialize (self, auv_state):
+
         self.__heading = auv_state['heading']
         self.__speed = auv_state['speed']
         self.__rudder = auv_state['rudder']
@@ -31,6 +32,10 @@ class AUVController ():
         self.__desired_heading = auv_state['heading']
 
     ### Public member functions
+	def update_state (self):
+
+		return
+
     def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
 
         # update state information
@@ -67,7 +72,8 @@ class AUVController ():
         gate_center = ((gnext[0]+rnext[0])/2.0, (gnext[1]+rnext[1])/2.0)
 
         # heading to gate_center
-        tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0]-self.__position[0], gate_center[1]-self.__position[1])) + 360,360)
+        tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0]-self.__position[0],
+											   gate_center[1]-self.__position[1])) + 360, 360)
 
         return tgt_hdg
 
@@ -98,21 +104,19 @@ class AUVController ():
 
             delta_angle = delta_angle + 360
 
-        # how much do we want to turn the rudder
-        ## Note: using STANDARD RUDDER only for now! A calculation here
-        ## will improve performance!
-        
-        #turn_command = "STANDARD RUDDER"
         turn_command = ""
+
         #using delta angle to calculate for better performance
         if self.desired_heading != self.heading:
+
             if np.abs(self.desired_heading - self.heading) > 10:
+
                 turn_command = "STANDARD RUDDER"
+
             elif np.abs(self.desired_heading - self.heading) > 3:
+
                 turn_command = "5 DEGREES RUDDER"
-                
-        turn_command = "STANDARD RUDDER"
-  
+
         # which way do we have to turn
         if delta_angle > 2: # need to turn to right!
 
