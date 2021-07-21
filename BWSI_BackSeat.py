@@ -71,6 +71,10 @@ class BackSeat ():
 
                 time.sleep(1 / self.__warp)
 
+				picture = self.__interpreter.take_picture()
+
+				self.__interpreter.calculate_values(picture)
+
 				# Logging state
 
 				writer.write([
