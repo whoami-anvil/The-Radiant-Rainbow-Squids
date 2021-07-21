@@ -107,8 +107,10 @@ class BackSeat():
     def process_message(self, msg):
         # DEAL WITH INCOMING BFNVG MESSAGES AND USE THEM TO UPDATE THE
         # STATE IN THE CONTROLLER!
-        
+        vals = msg.split(',')
         ### self.__autonomy.update_state() probably goes here!
+
+
         pass
         
     def send_message(self, msg):
