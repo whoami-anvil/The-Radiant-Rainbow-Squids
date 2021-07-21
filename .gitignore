@@ -1,0 +1,10 @@
+# Pycahce
+
+__pycache__/
+
+# Team Specific Code
+Mission\ Reconstruction\ and\ Analysis\ Programs/
+
+# Mission Data
+mission_logs/
+*.csv
