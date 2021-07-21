@@ -109,19 +109,28 @@ class BackSeat():
         # STATE IN THE CONTROLLER!
         vals = msg.split(',')
 
-        """
-        units of measurements
+        #gathering useful values needed to update state
+        time = datetime(vals[0])
+        latitude = float(vals[0])
+        longitude = float(vals[3])
+        altitude = float(vals[6])
+        depth = float(vals[7])
+        heading = float(vals[8])
+
+        self.__autonomy.__heading = heading
+        self.__autonomy.__position = (latitude, longitude)
         
+        """
+        object types
         [0]timestamp - datetime object
         [1]latitude - float
-        [2]hemisphere - str
-        *[3]longitude - float
+        [2]hemisphere n/s - str
+        [3]longitude - float
         [4] hemisphere e/w - str
         [5] quality of estimate (will be zero, do not use)
         [6] altitude m - float
         [7] depth - float
         [8] heading - degrees from north - float
-
 
         """
 
