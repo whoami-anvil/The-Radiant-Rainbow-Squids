@@ -105,8 +105,13 @@ class BackSeat():
           
         
     def process_message(self, msg):
-        # DEAL WITH INCOMING BFNVG MESSAGES AND USE THEM TO UPDATE THE
-        # STATE IN THE CONTROLLER!
+        """
+        inputs:
+        msg $BFVNG input string
+        
+        outputs:
+        None
+        """
         vals = msg.split(',')
 
         #gathering useful values needed to update state
