@@ -101,8 +101,18 @@ class AUVController ():
         # how much do we want to turn the rudder
         ## Note: using STANDARD RUDDER only for now! A calculation here
         ## will improve performance!
+        
+        #turn_command = "STANDARD RUDDER"
+        turn_command = ""
+        #using delta angle to calculate for better performance
+        if self.desired_heading != self.heading:
+            if np.abs(self.desired_heading - self.heading) > 10:
+                turn_command = "STANDARD RUDDER"
+            elif np.abs(self.desired_heading - self.heading) > 3:
+                turn_command = "5 DEGREES RUDDER"
+                
         turn_command = "STANDARD RUDDER"
-
+  
         # which way do we have to turn
         if delta_angle > 2: # need to turn to right!
 
