@@ -108,6 +108,23 @@ class BackSeat():
         # DEAL WITH INCOMING BFNVG MESSAGES AND USE THEM TO UPDATE THE
         # STATE IN THE CONTROLLER!
         vals = msg.split(',')
+
+        """
+        units of measurements
+        
+        [0]timestamp - datetime object
+        [1]latitude - float
+        [2]hemisphere - str
+        *[3]longitude - float
+        [4] hemisphere e/w - str
+        [5] quality of estimate (will be zero, do not use)
+        [6] altitude m - float
+        [7] depth - float
+        [8] heading - degrees from north - float
+
+
+        """
+
         ### self.__autonomy.update_state() probably goes here!
 
 
