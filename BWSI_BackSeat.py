@@ -15,12 +15,13 @@ import threading
 import datetime
 
 from AUV_Controller import AUVController
+from Camera_Interpritation import Interpreter
 
 from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
 
-log_file = None
+writer = None
 
 class BackSeat ():
 
@@ -34,6 +35,7 @@ class BackSeat ():
         self.__warp = warp
 
         self.__autonomy = AUVController()
+		self.__interpreter = Interpreter()
 
     def run (self):
 
@@ -71,7 +73,14 @@ class BackSeat ():
 
 				# Logging state
 
-
+				writer.write([
+					{'Timestamp (UTC)' : datetime.datetime.utcnow(),
+					 'Position' : self.__autonomy.get_position(),
+					 'Current Heading (deg)' : self.__autonomy.get_current_heading(),
+					 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
+					 'Green Bouys' : self.__interpreter.get_green_bouy_positions(),
+					 'Red Bouys' : self.__interpreter.get_red_bouy_positions()}
+				])
 
                 ### self.__autonomy.decide() probably goes here!
 
@@ -182,7 +191,8 @@ def main():
 
 	log_file_name = f"mission_{datetime.now()}.csv"
 	log_file = open(log_file_name, "w", encoding = 'UTF8', newline = '')
-	writer = csv.DictWriter(log_file, fieldnames = fieldnames)
+	writer = csv.DictWriter(log_file, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys'])
+	writer.writeheader()
 
     print(f"host = {host}, port = {port}")
     backseat = BackSeat(host = host, port = port)
