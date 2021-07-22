@@ -15,6 +15,8 @@ from BWSI_Sensor import BWSI_Camera, BWSI_Laser
 from pynmea2 import pynmea2
 import BluefinMessages
 
+# This class is the AUV Class, not the  AUV Controller
+
 def nmea_lat(lat_deg):
 	val = np.abs(lat_deg)
 	degval = np.floor(val)

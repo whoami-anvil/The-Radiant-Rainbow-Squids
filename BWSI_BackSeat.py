@@ -168,7 +168,7 @@ class BackSeat ():
 		cmd = pynmea2.parse(msg)
 
 		times = None
-
+		#creating a file for logging timestamps to
 		with open(log_file_name, newline = '') as csvfile:
 
 			reader = csv.DictReader(csvfile)
@@ -176,7 +176,8 @@ class BackSeat ():
 			times = [row['Timestamp (UTC)'] for row in csvfile]
 
 		last_timestamp = datetime.strptime(times[-1], '%Y-%m-%d %H:%M:%S.%f')
-
+		#passes command and last_timestamp into update_state() for updating
+		# AUV position
 		self.__autonomy.update_state(cmd, last_timestamp)
 
 		pass
