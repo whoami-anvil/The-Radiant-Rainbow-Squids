@@ -14,6 +14,7 @@ class AUVController ():
 
     def __init__ (self):
 
+<<<<<<< HEAD
 
         # initialize state information
         self.__heading = None
@@ -21,6 +22,8 @@ class AUVController ():
         self.__rudder = None
         self.__position = None
 
+=======
+>>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 		# initialize state information
 		self.__heading = None
 		self.__speed = None
@@ -28,36 +31,49 @@ class AUVController ():
 		self.__position = None
 		self.__speed_mps = None
 		self.__speed_knots = None
+<<<<<<< HEAD
 
+=======
+>>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = None
 
     def initialize (self, auv_state):
 
+<<<<<<< HEAD
 
         self.__heading = auv_state['heading']
         self.__speed = auv_state['speed']
         self.__rudder = auv_state['rudder']
         self.__position = auv_state['position']
 
+=======
+>>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 		self.__heading = auv_state['heading']
 		self.__speed = auv_state['speed']
 		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
 		self.__speed_mps = None
 		self.__speed_knots = None
+<<<<<<< HEAD
 
+=======
+>>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = auv_state['heading']
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
         #used for keeping track of times in AUV
         self.__time_list = []
 
     ### Public member functions
-    def update_state(self, cmd, last_timestamp):
+    def update_state (self, cmd, last_timestamp):
+
         print(cmd.latitude)
         print(cmd.longitude)
         print(cmd.heading)
@@ -73,24 +89,6 @@ class AUVController ():
         turning_rate = 11.67 * (self.__rudder_position / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS)
         speed_meters_per_second = self.__speed_knots * 0.514444
         heading_radians = np.radians(self.__heading) + np.radians((turning_rate * dt) / 2)
-=======
-	### Public member functions
-	def update_state (self, cmd, dt):
-
-
-
-		pass
->>>>>>> Stashed changes
-
-        eastings = (speed_meters_per_second * dt) * np.sin(heading_radians)
-        northings = (speed_meters_per_second * dt) * np.cos(heading_radians)
-
-        self.__latlon = utm.to_latlon(self.__position[0] + self.__datum_position[0] + eastings, self.__position[1] + self.__datum_position[1] + northings, self.__datum_position[2], self.__datum_position[3])
-        self.__position = (self.__position[0] + eastings, self.__position[1] + northings)
-        self.__heading += turning_rate * dt
-
-
-        #return None
 
     def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
 
