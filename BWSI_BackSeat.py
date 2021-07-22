@@ -229,13 +229,7 @@ def main():
 		 'Error': "Wow"}
 	)
 
-	reader = csv.DictReader(log_file_read)
-
-	for row in reader:
-
-		print(row)
-
-	print([row for row in reader])
+	print(len([row['Timestamp (UTC)'] for row in reader]))
 
 	print(f"host = {host}, port = {port}")
 	backseat = BackSeat(host = host, port = port)
