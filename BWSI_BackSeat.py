@@ -179,19 +179,12 @@ class BackSeat ():
 			times = [row['Timestamp (UTC)'] for row in csvfile]
 
 		last_timestamp = datetime.strptime(times[-1], '%Y-%m-%d %H:%M:%S.%f')
-<<<<<<< Updated upstream
-		#passes command and last_timestamp into update_state() for updating
-		# AUV position
-		self.__autonomy.update_state(cmd, last_timestamp)
-=======
 
 		dt = (datetime.datetime.utcnow() - last_timestamp).total(seconds)
 		#parse command here
 
 
 		self.__autonomy.update_state(cmd, dt) #get new lat long in the logging file
-		#if they are not roughly the same, disconnect and recalibrate
->>>>>>> Stashed changes
 
 		pass
 
