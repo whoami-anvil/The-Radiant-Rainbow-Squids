@@ -59,64 +59,40 @@ class MSC (TalkerSentence):
 
 class SHT (TalkerSentence):
 
-    """
-
-	Payload shutdown
-
-    """
+	# Payload shutdown
 
     fields = _TIMESTAMP_
 
 
 class BDL (TalkerSentence):
 
-    """
-
-	Begin data logging
-
-    """
+    # Begin data logging
 
     fields = timestamp_plus_string('Current mission step', 'mission_step')
 
 
 class SDL (TalkerSentence):
 
-    """
-
-	Stop data logging
-
-	"""
+    # Stop data logging
 
     fields = timestamp_plus_string('Current mission step', 'mission_step')
 
 
 class TOP (TalkerSentence):
 
-    """
-
-	Topside (not implemented by Bluefin)
-
-	"""
+    # Topside (not implemented by Bluefin)
 
     fields = timestamp_plus_int('Method of transport', 'transport_method')
 
 class DVT (TalkerSentence):
 
-    """
-
-	Begin/end DVL external trigger
-
-	"""
+    # Begin/end DVL external trigger
 
     fields = timestamp_plus_int('Payload start/stop', 'trigger_flag')
 
 class VER (TalkerSentence):
 
-    """
-
-	Vehicle interface version
-
-	"""
+    # Vehicle interface version
 
 	fields = timestamp_plus_string('Version number', 'version_number')
 
@@ -125,11 +101,8 @@ class VER (TalkerSentence):
 # ---------------------------------------------------------------------------- #
 
 class NVG (TalkerSentence):
-    """
 
-	Navigation update
-
-	"""
+    # Navigation update
 
     fields = (
             ('Timestamp', 'timestamp', timestamp),
@@ -148,11 +121,7 @@ class NVG (TalkerSentence):
 
 class NVR (TalkerSentence):
 
-    """
-
-	Velocity and rate update
-
-	"""
+    # Velocity and rate update
 
     fields = (
             ('Timestamp', 'timestamp', timestamp),
@@ -166,11 +135,7 @@ class NVR (TalkerSentence):
 
 class TEL (TalkerSentence):
 
-    """
-
-	Telemetry status (not implemented by Bluefin)
-
-	"""
+    # Telemetry status (not implemented by Bluefin)
 
     fields = (
             ('Timestamp', 'timestamp', timestamp),
@@ -183,21 +148,14 @@ class TEL (TalkerSentence):
          )
 
 class SVS (TalkerSentence):
-    """
 
-	Sound velocity
-
-	"""
+	# Sound velocity
 
 	fields = timestamp_plus_float('Sound speed', 'sound_speed')
 
 class RCM (TalkerSentence):
 
-    """
-
-	Raw compass data
-
-	"""
+    # Raw compass data
 
 	fields = (
             ('Timestamp', 'timestamp', timestamp),
@@ -209,21 +167,15 @@ class RCM (TalkerSentence):
         )
 
 class RDP (TalkerSentence):
-    """
 
-	Raw depth sensor data
-
-	"""
+	# Raw depth sensor data
 
     fields = timestamp_plus_float('Pressure', 'pressure_kpa')
 
 class RVL (TalkerSentence):
 
-	"""
+	# Raw vehicle speed
 
-	Raw vehicle speed
-
-	"""
     fields = (
             ('Timestamp', 'timestamp', timestamp),
             ('Thruster RPM', 'thruster_rpm', float),
@@ -232,11 +184,7 @@ class RVL (TalkerSentence):
 
 class RBS (TalkerSentence):
 
-	"""
-
-	Battery voltage
-
-	"""
+	# Battery voltage
 
 	fields = (
             ('Timestamp', 'timestamp', timestamp),
@@ -251,11 +199,7 @@ class RBS (TalkerSentence):
 
 class MBS (TalkerSentence):
 
-	"""
-
-	Begin new behavior
-
-	"""
+	# Begin new behavior
 
 	fields = (
             ('Timestamp', 'timestamp', timestamp),
@@ -266,12 +210,9 @@ class MBS (TalkerSentence):
         )
 
 class MBE (TalkerSentence):
-    """
 
-	End behavior
+	# End behavior
 
-	"""
-	
     fields = (
             ('Timestamp', 'timestamp', timestamp),
             ('Dive file', 'dive_file'),
