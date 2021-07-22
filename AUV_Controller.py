@@ -37,10 +37,14 @@ class AUVController ():
         self.__time_list = []
 
     ### Public member functions
-	def update_state (self, cmd):
+	def update_state(self, cmd):
             self.__latlon = (cmd.longitude, cmd.latitude)
             self.__time_list += cmd.time
+            self.__heading += cmd.heading
             dt = cmd.time - self.__time_list[-2]
+
+
+            #get turning rate of vehicle
             turning_rate = 11.67 * (self.__rudder_position / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS)
             speed_meters_per_second = self.__speed_knots * 0.514444
             heading_radians = np.radians(self.__heading) + np.radians((turning_rate * dt) / 2)
