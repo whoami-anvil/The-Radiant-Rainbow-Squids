@@ -16,29 +16,19 @@ _TIMESTAMP_ = (
 
 def timestamp_plus_string (data_name, short_name):
 
-	fields = (
-        ('Timestamp', 'timestamp', timestamp),
-        (data_name, short_name),
-    )
+    fields = (('Timestamp', 'timestamp', timestamp),
+                (data_name, short_name),)
 
     return fields
 
 def timestamp_plus_int (data_name, short_name):
 
-	fields = (
-        ('Timestamp', 'timestamp', timestamp),
-        (data_name, short_name, int),
-    )
-
+    fields = (('Timestamp', 'timestamp', timestamp),(data_name, short_name, int),)
     return fields
 
 def timestamp_plus_float (data_name, short_name):
 
-	fields = (
-        ('Timestamp', 'timestamp', timestamp),
-        (data_name, short_name, float),
-    )
-
+    fields = (('Timestamp', 'timestamp', timestamp),(data_name, short_name, float))
     return fields
 
 
@@ -118,7 +108,7 @@ class VER (TalkerSentence):
 
 	"""
 
-	fields = timestamp_plus_string('Version number', 'version_number')
+    fields = timestamp_plus_string('Version number', 'version_number')
 
 # ---------------------------------------------------------------------------- #
 # ----Status messages from vehicle to payload-------------------------------- #
@@ -189,7 +179,7 @@ class SVS (TalkerSentence):
 
 	"""
 
-	fields = timestamp_plus_float('Sound speed', 'sound_speed')
+    fields = timestamp_plus_float('Sound speed', 'sound_speed')
 
 class RCM (TalkerSentence):
 
@@ -199,7 +189,7 @@ class RCM (TalkerSentence):
 
 	"""
 
-	fields = (
+    fields = (
             ('Timestamp', 'timestamp', timestamp),
             ('Compass number', 'compass_number', int),
             ('Heading', 'heading_deg', float),
@@ -218,12 +208,7 @@ class RDP (TalkerSentence):
     fields = timestamp_plus_float('Pressure', 'pressure_kpa')
 
 class RVL (TalkerSentence):
-
-	"""
-
-	Raw vehicle speed
-
-	"""
+    #raw vehicle speed
     fields = (
             ('Timestamp', 'timestamp', timestamp),
             ('Thruster RPM', 'thruster_rpm', float),
