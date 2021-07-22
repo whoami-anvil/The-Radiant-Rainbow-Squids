@@ -14,13 +14,13 @@ class AUVController ():
 
     def __init__ (self):
 
-<<<<<<< Updated upstream
+
         # initialize state information
         self.__heading = None
         self.__speed = None
         self.__rudder = None
         self.__position = None
-=======
+
 		# initialize state information
 		self.__heading = None
 		self.__speed = None
@@ -28,31 +28,31 @@ class AUVController ():
 		self.__position = None
 		self.__speed_mps = None
 		self.__speed_knots = None
->>>>>>> Stashed changes
+
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = None
 
     def initialize (self, auv_state):
 
-<<<<<<< Updated upstream
+
         self.__heading = auv_state['heading']
         self.__speed = auv_state['speed']
         self.__rudder = auv_state['rudder']
         self.__position = auv_state['position']
-=======
+
 		self.__heading = auv_state['heading']
 		self.__speed = auv_state['speed']
 		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
 		self.__speed_mps = None
 		self.__speed_knots = None
->>>>>>> Stashed changes
+
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = auv_state['heading']
 
-<<<<<<< Updated upstream
+
         #used for keeping track of times in AUV
         self.__time_list = []
 
