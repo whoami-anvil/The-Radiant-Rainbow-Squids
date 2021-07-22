@@ -73,6 +73,7 @@ class FrontSeat():
 			server.join()
 
 	def parse_payload_command (self, msg):
+		#parses BPRMB data to set request
 
 		# the only one I care about for now is BPRMB
 		vals = msg.split(',')

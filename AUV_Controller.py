@@ -14,16 +14,6 @@ class AUVController ():
 
     def __init__ (self):
 
-<<<<<<< HEAD
-
-        # initialize state information
-        self.__heading = None
-        self.__speed = None
-        self.__rudder = None
-        self.__position = None
-
-=======
->>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 		# initialize state information
 		self.__heading = None
 		self.__speed = None
@@ -31,43 +21,30 @@ class AUVController ():
 		self.__position = None
 		self.__speed_mps = None
 		self.__speed_knots = None
-<<<<<<< HEAD
-
-=======
->>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = None
 
     def initialize (self, auv_state):
 
-<<<<<<< HEAD
 
         self.__heading = auv_state['heading']
         self.__speed = auv_state['speed']
         self.__rudder = auv_state['rudder']
         self.__position = auv_state['position']
 
-=======
->>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 		self.__heading = auv_state['heading']
 		self.__speed = auv_state['speed']
 		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
 		self.__speed_mps = None
 		self.__speed_knots = None
-<<<<<<< HEAD
 
-=======
->>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = auv_state['heading']
 
-<<<<<<< HEAD
 
-=======
->>>>>>> d96f3ecd30a3af9d8f5a74359640ebabf2a4fcf5
         #used for keeping track of times in AUV
         self.__time_list = []
 
@@ -111,6 +88,7 @@ class AUVController ():
         cmd = self.__select_command()
 
         return cmd
+
 
     # return the desired heading to a public requestor
     def get_desired_heading (self):
