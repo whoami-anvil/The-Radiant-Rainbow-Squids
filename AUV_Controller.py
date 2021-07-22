@@ -25,14 +25,23 @@ class AUVController ():
         # assume we want to be going the direction we're going for now
         self.__desired_heading = None
 
+        #vehicle controller limits
+
+        self.__HARD_RUDDER_DEG = 25
+        self.__MAX_SPEED_KNOTS = 4
+        self.__MAX_TURNING_RATE = 11.67
+
     def initialize (self, auv_state):
 
 		self.__heading = auv_state['heading']
 		self.__speed = auv_state['speed']
 		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
+
+        # need to get speed meter/s and speed knots from AUV state
 		self.__speed_mps = None
 		self.__speed_knots = None
+		self.__orig_lat_lon = None
 
         # assume we want to be going the direction we're going for now
         self.__desired_heading = auv_state['heading']
@@ -41,25 +50,31 @@ class AUVController ():
         self.__time_list = []
 
     ### Public member functions
-    def update_state (self, cmd, last_timestamp):
+    def update_state (self, cmd, dt):
+        #cmd is in BFNVG format
+        #cmd comes from backseat
 
-        print(cmd.latitude)
-        print(cmd.longitude)
-        print(cmd.heading)
-        # self.__latlon = (cmd.latitude, cmd.longitude)
-        # self.__time_list += cmd.time
-        # self.__heading += cmd.heading
+        delta_heading = self.__MAX_TURNING_RATE * (self.__rudder / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS) * dt
 
-        self.__time_list += last_timestamp
-        dt = last_timestamp - self.__time_list[-2]
+		# adjust the delta heading based on rudder history
+		# delta_heading += self.__rudder_hydro_effect()
 
 
-        #get turning rate of vehicle
-        turning_rate = 11.67 * (self.__rudder_position / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS)
-        speed_meters_per_second = self.__speed_knots * 0.514444
-        heading_radians = np.radians(self.__heading) + np.radians((turning_rate * dt) / 2)
+		final_heading = np.mod(self.__heading + delta_heading + 360.0, 360.0)
+		avg_heading = np.mod( self.__heading + delta_heading / 2.0 + 360.0, 360.0)
+
+		# just march forward
+		dx = self.__speed_mps * dt * np.sin(np.radians(avg_heading))
+		dy = self.__speed_mps * dt * np.cos(np.radians(avg_heading))
+		x = self.__position[0] + dx
+		y = self.__position[1] + dy
+		self.__position = (x,y)
+
+		self.__heading = final_heading
 
     def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+
+		### WIP ###
 
         # update state information
         self.__heading = auv_state['heading']
