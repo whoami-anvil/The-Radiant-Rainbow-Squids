@@ -28,7 +28,7 @@ def timestamp_plus_int (data_name, short_name):
 
 def timestamp_plus_float (data_name, short_name):
 
-    fields = (('Timestamp', 'timestamp', timestamp),(data_name, short_name, float))
+    fields = (('Timestamp', 'timestamp', timestamp),(data_name, short_name, float),)
     return fields
 
 
