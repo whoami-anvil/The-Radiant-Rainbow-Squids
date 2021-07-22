@@ -15,7 +15,7 @@ import threading
 import datetime
 
 from AUV_Controller import AUVController
-from Camera_Interpritation import Interpreter
+from Camera_Interpreter import Interpreter
 
 from pynmea2 import pynmea2
 import BluefinMessages
