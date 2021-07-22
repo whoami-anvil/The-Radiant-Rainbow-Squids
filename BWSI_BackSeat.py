@@ -20,6 +20,7 @@ from Camera_Interpreter import Interpreter
 from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
+from BWSI_Sandshark import Sandshark
 
 log_file_name = None
 writer = None
@@ -35,6 +36,7 @@ class BackSeat ():
 		self.__start_time = self.__current_time
 		self.__warp = warp
 
+		self.__vehicle = Sandshark() #create vehicle
 		self.__autonomy = AUVController()
 		self.__interpreter = Interpreter()
 
@@ -44,15 +46,14 @@ class BackSeat ():
 			# connect the client
 			client = threading.Thread(target=self.__client.run, args=())
 			client.start()
-
 			msg = BluefinMessages.BPLOG('ALL', 'ON')
 			self.send_message(msg)
 
 			### These flags are for the test code. Remove them after the initial test!
 			engine_started = False
 			turned = False
-
-			self.__autonomy.initialize({'position' : (0, 0), 'speed' : 0, 'heading' : 0})
+			#get state of vehicle to feed into AUV Controller
+			self.__autonomy.initialize({'position' : 0.0, 'rudder' : 0, 'speed' : 0.0})
 
 			writer.writerow([
 				{'Timestamp (UTC)' : datetime.datetime.utcnow(),
@@ -103,8 +104,10 @@ class BackSeat ():
 
 				### self.__autonomy.decide() probably goes here!
 
-				rudder_command, engine_command = self.__autonomy.decide()
+				new_rudder, new_speed = self.__autonomy.decide()
 
+				self.__vehicle.set_rpm(new_speed)
+				self.__vehicle.set_rudder(new_rudder)
 				### turn your output message into a BPRMB request!
 
 				bluefin_message = self.convert_commands(rudder_command, engine_command)
@@ -176,9 +179,19 @@ class BackSeat ():
 			times = [row['Timestamp (UTC)'] for row in csvfile]
 
 		last_timestamp = datetime.strptime(times[-1], '%Y-%m-%d %H:%M:%S.%f')
+<<<<<<< Updated upstream
 		#passes command and last_timestamp into update_state() for updating
 		# AUV position
 		self.__autonomy.update_state(cmd, last_timestamp)
+=======
+
+		dt = (datetime.datetime.utcnow() - last_timestamp).total(seconds)
+		#parse command here
+
+
+		self.__autonomy.update_state(cmd, dt) #get new lat long in the logging file
+		#if they are not roughly the same, disconnect and recalibrate
+>>>>>>> Stashed changes
 
 		pass
 

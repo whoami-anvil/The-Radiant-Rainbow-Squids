@@ -272,21 +272,27 @@ class Sandshark(object):
 		return auv_state
 
 	def get_position(self):
+		#return position of AUV
 		return self.__position
 
 	def get_heading(self):
+		#return heading of AUV
 		return self.__heading
 
 	def get_rudder(self):
+		#return rudder position of AUV
 		return self.__rudder_position
 
 	def set_battery(self, val):
+		#set the battery value
 		self.__battery = val
 
 	def get_battery(self):
+		#get battery value
 		return self.__battery
 
 	def get_speed(self, units='mps'):
+		#get speed of AUVController
 		if units.lower() == 'mps':
 			return self.__speed_mps
 		else:
