@@ -38,8 +38,21 @@ class AUVController ():
 
     ### Public member functions
 	def update_state (self, cmd):
+            self.__latlon = (cmd.longitude, cmd.latitude)
+            self.__time_list += cmd.time
+            dt = cmd.time - self.__time_list[-2]
+            turning_rate = 11.67 * (self.__rudder_position / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS)
+            speed_meters_per_second = self.__speed_knots * 0.514444
+            heading_radians = np.radians(self.__heading) + np.radians((turning_rate * dt) / 2)
 
-        pass
+            eastings = (speed_meters_per_second * dt) * np.sin(heading_radians)
+            northings = (speed_meters_per_second * dt) * np.cos(heading_radians)
+
+            self.__latlon = utm.to_latlon(self.__position[0] + self.__datum_position[0] + eastings, self.__position[1] + self.__datum_position[1] + northings, self.__datum_position[2], self.__datum_position[3])
+            self.__position = (self.__position[0] + eastings, self.__position[1] + northings)
+            self.__heading += turning_rate * dt
+
+
         #return None
 
     def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
