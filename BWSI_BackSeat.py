@@ -37,8 +37,8 @@ class BackSeat ():
 		self.__warp = warp
 
 		self.__vehicle = Sandshark() #create vehicle
-		self.__autonomy = AUVController()
-		self.__interpreter = Interpreter()
+		self.__autonomy = AUVController() #vehicle controller
+		self.__interpreter = Interpreter() #image recognition
 
 	def run (self):
 
