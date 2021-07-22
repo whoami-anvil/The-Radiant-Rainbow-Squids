@@ -101,7 +101,7 @@ class AUVController ():
         # how much do we want to turn the rudder
         ## Note: using STANDARD RUDDER only for now! A calculation here
         ## will improve performance!
-<<<<<<< HEAD
+
         #turn_command = "STANDARD RUDDER"
         turn_command = ""
         #using delta angle to calculate for better performance
@@ -112,11 +112,6 @@ class AUVController ():
                 turn_command = "5 DEGREES RUDDER"
 
 
-        
-=======
-        turn_command = "STANDARD RUDDER"
-
->>>>>>> ac9262c (Updated Spacing in AUV_Controller)
         # which way do we have to turn
         if delta_angle > 2: # need to turn to right!
 
