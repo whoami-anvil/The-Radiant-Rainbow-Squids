@@ -219,8 +219,21 @@ def main():
 	writer.writeheader()
 	reader = csv.DictReader(log_file_read)
 
-	print(reader)
-	print(len(reader))
+	writer.writerow(
+		{'Timestamp (UTC)' : datetime.datetime.utcnow(),
+		 'Position' : None,
+		 'Current Heading (deg)' : None,
+		 'Desired Heading (deg)' : None,
+		 'Green Bouys' : None,
+		 'Red Bouys' : None,
+		 'Error': error_msg}
+	)
+
+	for row in reader:
+
+		print(row)
+
+	print([row for row in reader])
 
 	print(f"host = {host}, port = {port}")
 	backseat = BackSeat(host = host, port = port)
