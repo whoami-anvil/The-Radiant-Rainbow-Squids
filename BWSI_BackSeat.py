@@ -21,6 +21,7 @@ from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
 
+reader = None
 writer = None
 
 class BackSeat ():
@@ -83,7 +84,8 @@ class BackSeat ():
 					 'Current Heading (deg)' : self.__autonomy.get_current_heading(),
 					 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
 					 'Green Bouys' : self.__interpreter.get_green_bouy_positions(),
-					 'Red Bouys' : self.__interpreter.get_red_bouy_positions()}
+					 'Red Bouys' : self.__interpreter.get_red_bouy_positions(),
+					 'Error': "None"}
 				])
 
                 ### self.__autonomy.decide() probably goes here!
@@ -161,7 +163,7 @@ class BackSeat ():
         print(f"sending message {msg}...")
         self.__client.send_message(msg)
 
-    def send_status(self):
+    def send_status (self):
 
         #print("sending status...")
         self.__current_time = time.time()
@@ -169,11 +171,28 @@ class BackSeat ():
         msg = BluefinMessages.BPSTS(hhmmss, 1, 'BWSI Autonomy OK')
         self.send_message(msg)
 
-    def get_mail(self):
+    def get_mail (self):
 
         msgs = self.__client.receive_mail()
 
         return msgs
+
+	def log_error (self, error_msg):
+
+		writer.write([
+			{'Timestamp (UTC)' : datetime.datetime.utcnow(),
+			 'Position' : None,
+			 'Current Heading (deg)' : None,
+			 'Desired Heading (deg)' : None,
+			 'Green Bouys' : None,
+			 'Red Bouys' : None,
+			 'Error': error_msg}
+		])
+
+		self.__current_time = time.time()
+        hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+        msg = BluefinMessages.BPABT(hhmmss, error_msg)
+        self.send_message(msg)
 
 def main():
 
@@ -194,9 +213,14 @@ def main():
         port = 8042
 
 	log_file_name = f"mission_{datetime.now()}.csv"
-	log_file = open(log_file_name, "w", encoding = 'UTF8', newline = '')
-	writer = csv.DictWriter(log_file, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys'])
+	log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
+	log_file_read = open(log_file_name, "r", encoding = 'UTF8', newline = '')
+	writer = csv.DictWriter(log_file, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 	writer.writeheader()
+	reader = csv.DictReader(log_file)
+
+	print(reader)
+	print(len(reader))
 
     print(f"host = {host}, port = {port}")
     backseat = BackSeat(host = host, port = port)
