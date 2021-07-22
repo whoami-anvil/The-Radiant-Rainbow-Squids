@@ -32,7 +32,7 @@ class AUVController ():
 		self.__desired_heading = auv_state['heading']
 
 	### Public member functions
-	def update_state (self, cmd):
+	def update_state (self, cmd, last_time):
 
 		turning_rate = 11.67 * (self.__rudder_position / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS)
 		speed_meters_per_second = self.__speed_knots * 0.514444

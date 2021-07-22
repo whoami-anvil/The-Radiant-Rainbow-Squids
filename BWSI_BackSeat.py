@@ -21,7 +21,7 @@ from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
 
-reader = None
+log_file_name = None
 writer = None
 
 class BackSeat ():
@@ -52,6 +52,18 @@ class BackSeat ():
 			engine_started = False
 			turned = False
 
+			self.__autonomy.initialize({'position' : (0, 0), 'speed' : 0, 'heading' : 0})
+
+			writer.writerow([
+				{'Timestamp (UTC)' : datetime.datetime.utcnow(),
+				 'Position' : self.__autonomy.get_position(),
+				 'Current Heading (deg)' : self.__autonomy.get_current_heading(),
+				 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
+				 'Green Bouys' : self.__interpreter.get_green_bouy_positions(),
+				 'Red Bouys' : self.__interpreter.get_red_bouy_positions(),
+				 'Error': "None"}
+			])
+
 			while True:
 
 				now = time.time()
@@ -69,6 +81,7 @@ class BackSeat ():
 					for msg in msgs:
 
 						print(f"{str(msg, 'utf-8')}")
+						self.process_message(msg)
 
 				time.sleep(1 / self.__warp)
 
@@ -78,7 +91,7 @@ class BackSeat ():
 
 				# Logging state
 
-				writer.write([
+				writer.writerow([
 					{'Timestamp (UTC)' : datetime.datetime.utcnow(),
 					 'Position' : self.__autonomy.get_position(),
 					 'Current Heading (deg)' : self.__autonomy.get_current_heading(),
@@ -154,7 +167,17 @@ class BackSeat ():
 
 		cmd = pynmea2.parse(msg)
 
-		self.__autonomy.update_state(cmd)
+		times = None
+
+		with open(log_file_name, newline = '') as csvfile:
+
+			reader = csv.DictReader(csvfile)
+
+			times = [row['Timestamp (UTC)'] for row in csvfile]
+
+		last_timestamp = datetime.strptime(times[-1], '%Y-%m-%d %H:%M:%S.%f')
+
+		self.__autonomy.update_state(cmd, last_timestamp)
 
 		pass
 
@@ -179,7 +202,7 @@ class BackSeat ():
 
 	def log_error (self, error_msg):
 
-		writer.write([
+		writer.writerow([
 			{'Timestamp (UTC)' : datetime.datetime.utcnow(),
 			 'Position' : None,
 			 'Current Heading (deg)' : None,
@@ -214,22 +237,8 @@ def main():
 
 	log_file_name = f"mission_{datetime.datetime.now()}.csv"
 	log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
-	log_file_read = open(log_file_name, "r", encoding = 'UTF8', newline = '')
 	writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 	writer.writeheader()
-	reader = csv.DictReader(log_file_read)
-
-	writer.writerow(
-		{'Timestamp (UTC)' : datetime.datetime.utcnow(),
-		 'Position' : None,
-		 'Current Heading (deg)' : None,
-		 'Desired Heading (deg)' : None,
-		 'Green Bouys' : None,
-		 'Red Bouys' : None,
-		 'Error': "Wow"}
-	)
-
-	print(len([row['Timestamp (UTC)'] for row in reader]))
 
 	print(f"host = {host}, port = {port}")
 	backseat = BackSeat(host = host, port = port)
