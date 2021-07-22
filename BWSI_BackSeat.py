@@ -212,7 +212,7 @@ def main():
 
 		port = 8042
 
-	log_file_name = f"mission_{datetime.now()}.csv"
+	log_file_name = f"mission_{datetime.datetime.now()}.csv"
 	log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
 	log_file_read = open(log_file_name, "r", encoding = 'UTF8', newline = '')
 	writer = csv.DictWriter(log_file, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
