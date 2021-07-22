@@ -226,8 +226,10 @@ def main():
 		 'Desired Heading (deg)' : None,
 		 'Green Bouys' : None,
 		 'Red Bouys' : None,
-		 'Error': error_msg}
+		 'Error': "Wow"}
 	)
+
+	reader = csv.DictReader(log_file_read)
 
 	for row in reader:
 
