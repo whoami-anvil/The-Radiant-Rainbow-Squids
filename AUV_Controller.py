@@ -25,6 +25,12 @@ class AUVController ():
         # assume we want to be going the direction we're going for now
         self.__desired_heading = None
 
+        #vehicle controller limits
+
+        self.__HARD_RUDDER_DEG = 25
+        self.__MAX_SPEED_KNOTS = 4
+        self.__MAX_TURNING_RATE = 11.67
+
     def initialize (self, auv_state):
 
 
@@ -37,8 +43,11 @@ class AUVController ():
 		self.__speed = auv_state['speed']
 		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
+
+        # need to get speed meter/s and speed knots from AUV state
 		self.__speed_mps = None
 		self.__speed_knots = None
+		self.__orig_lat_lon = None
 
 
         # assume we want to be going the direction we're going for now
@@ -49,12 +58,14 @@ class AUVController ():
         self.__time_list = []
 
     ### Public member functions
-    def update_state (self, cmd, last_timestamp):
-
+    def update_state (self, cmd, dt):
         #cmd is in BFNVG format
         #cmd comes from backseat
 
         delta_heading = self.__MAX_TURNING_RATE * (self.__rudder / self.__HARD_RUDDER_DEG) * (self.__speed_knots / self.__MAX_SPEED_KNOTS) * dt
+
+		# adjust the delta heading based on rudder history
+		# delta_heading += self.__rudder_hydro_effect()
 
 		# adjust the delta heading based on rudder history
 		# delta_heading += self.__rudder_hydro_effect()
@@ -73,6 +84,8 @@ class AUVController ():
 		self.__heading = final_heading
 
     def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+
+		### WIP ###
 
         # update state information
         self.__heading = auv_state['heading']

@@ -36,9 +36,8 @@ class BackSeat ():
 		self.__start_time = self.__current_time
 		self.__warp = warp
 
-		self.__vehicle = Sandshark() #create vehicle
-		self.__autonomy = AUVController() #vehicle controller
-		self.__interpreter = Interpreter() #image recognition
+		self.__autonomy = AUVController()
+		self.__interpreter = Interpreter()
 
 	def run (self):
 
@@ -105,88 +104,53 @@ class BackSeat ():
 				### self.__autonomy.decide() probably goes here!
 
 				new_rudder, new_speed = self.__autonomy.decide()
+				#need to pass things into it
+				#need this line to return outputs, currently returns nothing
 
-				self.__vehicle.set_rpm(new_speed)
-				self.__vehicle.set_rudder(new_rudder)
 				### turn your output message into a BPRMB request!
 
 				bluefin_message = self.convert_commands(rudder_command, engine_command)
 
-				# ------------------------------------------------------------ #
-				# ----This is example code to show commands being issued
-				# ------------------------------------------------------------ #
-
-				print(f"{self.__current_time - self.__start_time}")
-
-				if not engine_started and (self.__current_time - self.__start_time) > 30:
-
-					## We want to change the speed. For now we will always use the RPM (1500 Max)
-					self.__current_time = time.time()
-
-					# This is the timestamp format from NMEA: hhmmss.ss
-					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-
-					cmd = f"BPRMB,{hhmmss},,,,750,0,1"
-
-					# NMEA requires a checksum on all the characters between the $ and the *
-					# you can use the BluefinMessages.checksum() function to calculate
-					# and write it like below. The checksum goes after the *
-					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-					self.send_message(msg)
-					engine_started = True
-
-				if not turned and (self.__current_time - self.__start_time) > 60:
-
-					## We want to set the rudder position, use degrees plus or minus
-					## This command is how much to /change/ the rudder position, not to
-					## set the rudder
-					self.__current_time = time.time()
-					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-
-					cmd = f"BPRMB,{hhmmss},15,,,750,0,1"
-					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-					self.send_message(msg)
-					turned = True
-
-				# ------------------------------------------------------------ #
-				# ----End of example code
-				# ------------------------------------------------------------ #
+				self.__current_time = time.time()
+				hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+				cmd = BluefinMessages.BPRMB(hhmmss, (self.__autonomy.get_current_heading() + new_rudder), '', '', new_speed, 0, 1)
+				msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+				self.send_message(msg)
 
 		except:
 
 			self.__client.cleanup()
 			client.join()
 
-	def convert_commands (self, rudder_command, engine_command):
-
-
-
-		pass
-
 	def process_message (self, msg):
 
-		# DEAL WITH INCOMING BFNVG MESSAGES AND USE THEM TO UPDATE THE
-		# STATE IN THE CONTROLLER!
+		try:
 
-		cmd = pynmea2.parse(msg)
+			# DEAL WITH INCOMING BFNVG MESSAGES AND USE THEM TO UPDATE THE
+			# STATE IN THE CONTROLLER!
 
-		times = None
-		#creating a file for logging timestamps to
-		with open(log_file_name, newline = '') as csvfile:
+			cmd = pynmea2.parse(msg)
 
-			reader = csv.DictReader(csvfile)
+			variables = None
 
-			times = [row['Timestamp (UTC)'] for row in csvfile]
+			#creating a file for logging timestamps to
+			with open(log_file_name, newline = '') as csvfile:
 
-		last_timestamp = datetime.strptime(times[-1], '%Y-%m-%d %H:%M:%S.%f')
+				reader = csv.DictReader(csvfile)
 
-		dt = (datetime.datetime.utcnow() - last_timestamp).total(seconds)
-		#parse command here
+				variables = [[row['Timestamp (UTC)'], row['Current Heading (deg)']] for row in csvfile]
 
+			last_timestamp = datetime.strptime(variables[-1][0], '%Y-%m-%d %H:%M:%S.%f')
 
-		self.__autonomy.update_state(cmd, dt) #get new lat long in the logging file
+			dt = (datetime.datetime.utcnow() - last_timestamp).total(seconds)
 
-		pass
+			#parse command here
+
+			self.__autonomy.update_state(cmd, dt)
+
+		except:
+
+			self.log_error("Error in message processing")
 
 	def send_message (self, msg):
 
