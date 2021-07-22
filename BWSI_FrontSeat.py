@@ -50,7 +50,7 @@ class FrontSeat():
 
 				now = time.time()
 				delta_time = (now - self.__current_time) * self.__warp
-				msg = self.__vehicle.update_state(delta_time)
+				msg = self.__vehicle.update_state(delta_time) #msg is in bfnvg form always
 				self.__server.send_command(msg)
 				self.__current_time = now
 
@@ -73,6 +73,7 @@ class FrontSeat():
 			server.join()
 
 	def parse_payload_command (self, msg):
+		#parses BPRMB data to set request
 
 		# the only one I care about for now is BPRMB
 		vals = msg.split(',')
