@@ -28,37 +28,37 @@ class FrontSeat():
         # start up the vehicle, in setpoint mode
         self.__datum = (42.3, -71.1)
         self.__vehicle = Sandshark(latlon=(42.3, -71.1),
-                                   depth=1.0, 
+                                   depth=1.0,
                                    speed_knots=0.0,
                                    heading=120.0,
                                    rudder_position=0.0,
                                    engine_speed='STOP',
                                    engine_direction='AHEAD',
                                    datum=self.__datum)
-        
+
         # front seat acts as server
         self.__server = SandsharkServer(port=port)
         self.__current_time = datetime.datetime.utcnow().timestamp()
         self.__start_time = self.__current_time
         self.__warp = warp
-        
+
         self.__position_history = list()
         self.__doPlots = True
-        
+
         # has heard from the backseat
         self.__isConnected = False
-    
-    
+
+
     def run(self):
         try:
             # start up the server
             server = threading.Thread(target=self.__server.run, args=())
             server.start()
-            
+
             if self.__doPlots:
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
-                
+
                 self.__simField = BuoyField(self.__datum)
 
                 config = {'nGates': 50,
@@ -67,7 +67,7 @@ class FrontSeat():
                           'style': 'linear',
                           'max_offset': 5,
                           'heading': 120}
-                    
+
                 self.__simField.configure(config)
                 G, R = self.__simField.get_buoy_positions()
                 green_buoys = np.asarray(G)
@@ -81,7 +81,7 @@ class FrontSeat():
                 msg = self.__vehicle.update_state(delta_time)
                 self.__server.send_command(msg)
                 self.__current_time = now
-                
+
                 msgs = self.__server.receive_mail()
                 if len(msgs) > 0:
                     self.__isConnected = True
@@ -89,8 +89,8 @@ class FrontSeat():
                     for msg in msgs:
                         self.parse_payload_command(str(msg, 'utf-8'))
                         print(f"{str(msg, 'utf-8')}")
-                        
-                    
+
+
                 if self.__doPlots and self.__isConnected:
                     current_position = self.__vehicle.get_position()
                     self.__position_history.append(current_position)
@@ -98,26 +98,26 @@ class FrontSeat():
                     ax.plot(green_buoys[:,0], green_buoys[:,1], 'go')
                     ax.plot(red_buoys[:,0], red_buoys[:,1], 'ro')
                     trk = np.array(self.__position_history)
-                    ax.plot(trk[-10:,0], trk[-10:,1], 'k')            
-    
+                    ax.plot(trk[-10:,0], trk[-10:,1], 'k')
+
                     ax.set_xlim(current_position[0]-10, current_position[0]+10)
                     ax.set_ylim(current_position[1]-10, current_position[1]+10)
                     ax.set_aspect('equal')
-                    
+
                     plt.pause(0.01)
                     plt.draw()
- 
+
                 count += 1
                 time.sleep(1/self.__warp)
         except:
             self.__server.cleanup()
             server.join()
-            
+
     def parse_payload_command(self, msg):
         # the only one I care about for now is BPRMB
         vals = msg.split(',')
         if vals[0] == '$BPRMB':
-                
+
             # heading / rudder request
             if vals[2] != '':
                 heading_mode = int(vals[7][:-3])
@@ -129,7 +129,7 @@ class FrontSeat():
                     rudder = float(vals[2])
                     print(f"SETTING RUDDER TO {rudder} DEGREES")
                     self.__vehicle.set_rudder(rudder)
-                
+
             # speed request
             if vals[5] != '':
                 speed_mode = int(vals[6])
@@ -146,11 +146,11 @@ def main():
         port = sys.argv[1]
     else:
         port = 8042
-        
+
     print(f"port = {port}")
-        
+
     front_seat = FrontSeat(port=port)
     front_seat.run()
 
 if __name__ == '__main__':
-    main()    
+    main()

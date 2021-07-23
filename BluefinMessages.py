@@ -61,7 +61,7 @@ class SDL(TalkerSentence):
     """ Stop data logging
     """
     fields = timestamp_plus_string('Current mission step', 'mission_step')
-    
+
 
 class TOP(TalkerSentence):
     """ Topside (not implemented by Bluefin)
@@ -77,7 +77,7 @@ class VER(TalkerSentence):
     """ Vehicle interface version
     """
     fields = timestamp_plus_string('Version number', 'version_number')
-    
+
 # ---------------------------------------------------------------------------- #
 # ----Status messages from vehicle to payload-------------------------------- #
 # ---------------------------------------------------------------------------- #
@@ -98,7 +98,7 @@ class NVG(TalkerSentence):
             ('Pitch', "pitch_deg", float),
             ('Timestamp of Fix', 'fix_timestamp', timestamp),
          )
-    
+
 class NVR(TalkerSentence):
     """ Velocity and rate update
     """
@@ -124,14 +124,14 @@ class TEL(TalkerSentence):
             ('RF status', "rf_status", int),
             ('Ethernet status', "ethernet_status", int),
          )
-    
+
 
 class SVS(TalkerSentence):
     """ Sound velocity
     """
     fields = timestamp_plus_float('Sound speed', 'sound_speed')
-    
-    
+
+
 class RCM(TalkerSentence):
     """ Raw compass data
     """
@@ -143,12 +143,12 @@ class RCM(TalkerSentence):
             ('Roll', 'roll_deg', float),
             ('Timestamp of data', 'data_timestamp', timestamp),
         )
-    
+
 class RDP(TalkerSentence):
     """ Raw depth sensor data
     """
     fields = timestamp_plus_float('Pressure', 'pressure_kpa')
-    
+
 class RVL(TalkerSentence):
     """ Raw vehicle speed
     """
@@ -157,7 +157,7 @@ class RVL(TalkerSentence):
             ('Thruster RPM', 'thruster_rpm', float),
             ('Speed', 'speed_mps', float),
         )
-    
+
 class RBS(TalkerSentence):
     """ Battery voltage
     """
@@ -171,7 +171,7 @@ class RBS(TalkerSentence):
             ('Battery capacity', 'capacity_kwh', float),
             ('Percent charge', 'percent_charge', float),
         )
-    
+
 class MBS(TalkerSentence):
     """ Begin new behavior
     """
@@ -182,7 +182,7 @@ class MBS(TalkerSentence):
             ('Behavior identifier', 'behavior_identifier', int),
             ('Behavior name', 'behavior_name'),
         )
-    
+
 class MBE(TalkerSentence):
     """ End behavior
     """
@@ -193,8 +193,8 @@ class MBE(TalkerSentence):
             ('Behavior identifier', 'behavior_identifier', int),
             ('Behavior name', 'behavior_name'),
         )
-    
-    
+
+
 class MIS(TalkerSentence):
     """ Mission status
     """
@@ -204,7 +204,7 @@ class MIS(TalkerSentence):
             ('Mission status', 'mission_status'),
             ('Status details', 'status_details'),
         )
-    
+
 class ERC(TalkerSentence):
     """ Elevator and rudder data
     """
@@ -231,7 +231,7 @@ class DVL(TalkerSentence):
             ('Temperature', 'temperature_c', float),
             ('Timestamp of data', 'data_timestamp', timestamp),
         )
-    
+
 ### SKIP: BFDV2
 
 class IMU(TalkerSentence):
@@ -277,9 +277,9 @@ class PLN(TalkerSentence):
             ('Longitude', 'longitude_deg', float),
             ('Undefined float', 'undefined_float', float),
             ('Undefined string 1', 'undefined_string_1'),
-            ('Undefined string 2', 'undefined_string_2'),        
+            ('Undefined string 2', 'undefined_string_2'),
         )
-    
+
 class ACK(TalkerSentence):
     """ Acknowledgment
     """
@@ -292,7 +292,7 @@ class ACK(TalkerSentence):
             ('Undefined int', 'undefined_int', int),
             ('Further details', 'ack_details'),
         )
-    
+
 class TRM(TalkerSentence):
     """ Trim status
     """
@@ -304,7 +304,7 @@ class TRM(TalkerSentence):
             ('Behavior identifier', 'behavior_identifier', float),
             ('Pitch trim estimate', 'pitch_trim_deg', float),
             ('Roll trim estimate', 'roll_trim_deg', float),
-        )    
+        )
 
 class BOY(TalkerSentence):
     """ Buoyancy status
@@ -316,14 +316,14 @@ class BOY(TalkerSentence):
             ('Status message', 'status_message'),
             ('Behavior identifier', 'behavior_identifier', float),
             ('Buoyancy estimate', 'buoyancy_N', float),
-        )    
+        )
 
 
 class DTL(TalkerSentence):
     """ Backseat control
     """
     fields = timestamp_plus_int('Backseat control status', 'backseat_control')
-     
+
 # ---------------------------------------------------------------------------- #
 # ----Messages from payload to vehicle---------------------------------------- #
 # ---------------------------------------------------------------------------- #
@@ -335,7 +335,7 @@ def checksum(my_str):
     # checksum is bitwise XOR of ascii
     for s in my_str:
         cksum ^= ord(s)
-    
+
     return cksum
 
 def str_to_cmd(msg_str):
@@ -347,7 +347,7 @@ def BPLOG(identifier='ALL', log_request='ON'):
     assert(len(identifier.upper()) == 3)
     assert(log_request.upper() == 'ON' or log_request.upper() == 'OFF')
     msg_str = f'BPLOG,{identifier.upper()},{log_request.upper()}'
-    
+
     return str_to_cmd(msg_str)
 
 def BPSTS(timestamp, status=1, msg=''):
@@ -355,7 +355,7 @@ def BPSTS(timestamp, status=1, msg=''):
     """
     assert(status==0 or status==1)
     msg_str = f'BPSTS,{timestamp},{status},{msg}'
-    
+
     return str_to_cmd(msg_str)
 
 def BPTOP(timestamp, method, msg):
@@ -363,7 +363,7 @@ def BPTOP(timestamp, method, msg):
     """
     assert(isinstance(method, int) and method>=0 and method<4)
     msg_str = f'BPTOP,{timestamp},{method},{msg},0'
-    
+
     return str_to_cmd(msg_str)
 
 # SKIP: BPDVR
@@ -377,29 +377,29 @@ def BPTRK(timestamp, identifier,
           speed, speed_mode, interrupt_code):
     """ Request additional trackline
     """
-    assert(vertical_mode==0 or vertical_mode==1)    
-    assert(speed_mode==0 or speed_mode==1)  
-    assert(interrupt_code==0 or interrupt_code==1)  
-    
+    assert(vertical_mode==0 or vertical_mode==1)
+    assert(speed_mode==0 or speed_mode==1)
+    assert(interrupt_code==0 or interrupt_code==1)
+
     msg_str = f'BPTRK,{timestamp},{identifier:.5d},'
     msg_str += f'{start_lat_deg:.2f},{start_lat_hemi},{start_lon_deg:.2f},{start_lon_hemi},'
     msg_str += f'{end_lat_deg:.2f},{end_lat_hemi},{end_lon_deg:.2f},{end_lon_hemi},'
     msg_str += f'{vertical_mode},{depth_alti:.1f},{speed:.1f},{speed_mode},{interrupt_code}'
-    
+
     return str_to_cmd(msg_str)
-    
+
 def BPTRC(timestamp, identifier,
           center_lat_deg, center_lat_hemi,
           center_lon_deg, center_lon_hemi,
           radius, num_orbits,
-          vertical_mode, depth_alti, 
-          speed, speed_mode, 
+          vertical_mode, depth_alti,
+          speed, speed_mode,
           entry_angle, interrupt_code):
     """ Request additional trackcircle
     """
-    assert(vertical_mode==0 or vertical_mode==1)    
-    assert(speed_mode==0 or speed_mode==1)  
-    assert(interrupt_code==0 or interrupt_code==1)  
+    assert(vertical_mode==0 or vertical_mode==1)
+    assert(speed_mode==0 or speed_mode==1)
+    assert(interrupt_code==0 or interrupt_code==1)
 
     msg_str = f'BPTRC,{timestamp},{identifier:.5d},'
     msg_str += f'{center_lat_deg:.2f},{center_lat_hemi},{center_lon_deg:.2f},{center_lon_hemi},'
@@ -413,85 +413,85 @@ def BPTRC(timestamp, identifier,
 def BPRCN(timestamp, identifier):
     """ Cancel requested behavior
     """
-    
+
     msg_str = f'BPRCN,{timestamp},{identifier:.5d}'
-    
+
     return str_to_cmd(msg_str)
 
 def BPRCA(timestamp):
     """ Cancel all requested behaviors
     """
-    
+
     msg_str = f'BPRCA,{timestamp}'
-    
+
     return str_to_cmd(msg_str)
 
 def BPRCB(timestamp):
     """ Cancel current behavior
     """
-    
+
     msg_str = f'BPRCB,{timestamp},0'
-    
+
     return str_to_cmd(msg_str)
 
 def BPRCE(timestamp):
     """ Cancel current mission element
     """
-    
+
     msg_str = f'BPRCE,{timestamp},0'
-    
+
     return str_to_cmd(msg_str)
 
-def BPRMB(timestamp, heading='', 
+def BPRMB(timestamp, heading='',
           depth='', depth_mode='',
           speed='', speed_mode='',
           horiz_mode=0):
     assert(depth_mode==0 or depth_mode==1 or depth_mode=='')
     assert(speed_mode==0 or speed_mode==1 or speed_mode=='')
     assert(horiz_mode==0 or horiz_mode==1)
-    
+
     if depth != '':
         depth = f'{depth:.1f}'
     if speed != '':
         speed = f'{speed:.1f}'
     msg_str = f'BPRMB,{timestamp},{depth},{depth_mode},'
     msg_str += f'{speed},{speed_mode},{horiz_mode}'
-    
+
     return str_to_cmd(msg_str)
-    
+
 # BPEMB
 # Skip: BPCTD
 
 def BPABT(timestamp, msg=''):
     """ Abort mission
     """
-    
+
     msg_str = f'BPABT,{timestamp},{msg}'
-    
+
     return str_to_cmd(msg_str)
-    
+
 def BPKIL(timestamp, msg=''):
     """ Kill mission
     """
-    
+
     msg_str = f'BPKIL,{timestamp},{msg}'
-    
+
     return str_to_cmd(msg_str)
-    
+
 def BPMSG(timestamp, msg=''):
     """ Log message
     """
     msg_str = f'BPMSG,{timestamp},{msg}'
-    
+
     return str_to_cmd(msg_str)
 
 def BPRMP(timestamp):
     """ Request mission plan
     """
     msg_str = f'BPRMP,{timestamp}'
-    
+
     return str_to_cmd(msg_str)
-    
+
 # BPNPU
 
 def BPSIL(timestamp, mode=0):
@@ -500,9 +500,9 @@ def BPSIL(timestamp, mode=0):
     assert(mode==0 or mode==1)
 
     msg_str = f'BPSIL,{timestamp},{mode}'
-    
+
     return str_to_cmd(msg_str)
-    
+
 # BPTRM
 # BPBOY
 
@@ -510,16 +510,15 @@ def BPVER(timestamp, version):
     """ payload interface version
     """
     msg_str = f'BPVER,{timestamp},{version}'
-    
+
     return str_to_cmd(msg_str)
-    
-    
+
+
 def BPLIT(timestamp, onoff=0):
     """ strobe light control (HAUV only?)
     """
     assert(onoff==0 or onoff==1)
-    
+
     msg_str = f'BPLIT,{timestamp},1,{onoff}'
-    
+
     return str_to_cmd(msg_str)
-    
