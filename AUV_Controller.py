@@ -91,7 +91,7 @@ class AUVController():
 		# determine whether and what command to issue to desired heading
 		delta_rudder, new_engine_speed = self.__select_command()
 
-	return rudder_turn, rpm_speed
+		return rudder_turn, rpm_speed
 
 	# return the desired heading to a public requestor
 	def get_desired_heading(self):
