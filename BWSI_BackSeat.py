@@ -60,7 +60,7 @@ class BackSeat ():
 		try:
 
 			# connect the client
-			client = threading.Thread(target = self.__client.run(), args = ())
+			client = threading.Thread(target = self.__client.run, args = ())
 			client.start()
 
 			msg = BluefinMessages.BPLOG('ALL', 'ON')
