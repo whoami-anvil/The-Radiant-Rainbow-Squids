@@ -93,7 +93,7 @@ def __select_command(self):
     #adjust turn angle in comparison to previous rudder angle
     rudder_turn = self.__rudder_prev - turn_angle
 
-    return rudder_turn
+    return rudder_turn, rpm_speed
 
     # return the desired heading to a public requestor
     def get_desired_heading(self):
@@ -122,31 +122,26 @@ def __select_command(self):
 
         return tgt_hdg
 
-    # choose a command to send to the front seat
-    def __select_command(self):
-        # Unless we need to issue a command, we will return None
-        cmd = None
+    def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+        delta_rudder = 0
+		new_engine_speed = 750 # RPM, as default
 
-        # determine the angle between current and desired heading
-        delta_angle = self.__desired_heading - self.__heading
-        if delta_angle > 180: # angle too big, go the other way!
-            delta_angle = delta_angle - 360
-        if delta_angle < -180: # angle too big, go the other way!
-            delta_angle = delta_angle + 360
+		# Z - AL Logic
+        #decide rudder angles
+        #figure out how to get it to move there based on its last rudder angle
+		# update state information
+        self.__heading = auv_state['heading']
+        self.__speed = auv_state['speed']
+        self.__rudder = auv_state['rudder']
+        self.__position = auv_state['position']
 
-        # how much do we want to turn the rudder
-        ## Note: using STANDARD RUDDER only for now! A calculation here
-        ## will improve performance!
-        turn_command = "STANDARD RUDDER"
+        # determine what heading we want to go
+        if sensor_type.upper() == 'POSITION': # known positions of buoys
+            self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
+        elif sensor_type.upper() == 'ANGLE': # camera sensor
+            self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
-        # which way do we have to turn
-        if delta_angle>2: # need to turn to right!
-            if self.__rudder >= 0: # rudder is turning the other way!
-                cmd = f"RIGHT {turn_command}"
-        elif delta_angle<-2: # need to turn to left!
-            if self.__rudder <= 0: # rudder is turning the other way!
-                cmd = f"LEFT {turn_command}"
-        else: #close enough!
-            cmd = "RUDDER AMIDSHIPS"
+        # determine whether and what command to issue to desired heading
+        delta_rudder, new_engine_speed = self.__select_command()
 
-        return cmd
+        return delta_rudder, new_engine_speed
