@@ -216,6 +216,7 @@ class BackSeat ():
 		self.__current_time = datetime.datetime.utcnow().timestamp()
 		hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 		msg = BluefinMessages.BPSTS(hhmmss, 1, 'BWSI Autonomy OK')
+		print(msg)
 		self.send_message(msg)
 
 	def get_mail (self):
