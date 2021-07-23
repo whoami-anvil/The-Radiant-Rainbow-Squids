@@ -140,6 +140,8 @@ class BackSeat ():
                 # ----End of example code
                 # ------------------------------------------------------------ #
 
+				#C - use BluefinMessages.BPRMB() to convert command from controller logic to BPRMB message
+
         except:
 
             self.__client.cleanup()
