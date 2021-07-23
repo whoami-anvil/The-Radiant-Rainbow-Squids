@@ -72,6 +72,16 @@ class AUVController():
         self.__rudder = auv_state['rudder']
         self.__position = auv_state['position']
 
+	    # how much do we want to turn the rudder
+	    ## Note: using STANDARD RUDDER only for now! A calculation here
+	    ## will improve performance!
+	    if np.abs(delta_angle) > 10:
+	        turn_angle = 15
+	        rpm_speed = 750
+	    else:
+	        turn_angle = 5
+	        rpm_speed = 550
+
         # determine what heading we want to go
         if sensor_type.upper() == 'POSITION': # known positions of buoys
             self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
@@ -81,7 +91,7 @@ class AUVController():
         # determine whether and what command to issue to desired heading
         delta_rudder, new_engine_speed = self.__select_command()
 
-        return delta_rudder, new_engine_speed
+    return rudder_turn, rpm_speed
 
     # return the desired heading to a public requestor
     def get_desired_heading(self):
