@@ -71,17 +71,21 @@ class BackSeat ():
 
 			while True:
 
-				print("Hello")
-
 				now = datetime.datetime.utcnow().timestamp()
 				# delta_time can be used for time difference calculation in decide?
 				delta_time = (now - self.__current_time) * self.__warp
 
+				print("Before")
+
 				self.send_status()
+
+				print("Passed")
+
 				self.__current_time += delta_time
 
 				msgs = self.get_mail()
-
+				print('message: ')
+				print(len(msgs)) #check message length before if statement
 				if len(msgs) > 0:
 
 					print("\nReceived from Frontseat:")
