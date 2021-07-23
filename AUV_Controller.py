@@ -78,8 +78,10 @@ def __select_command(self):
     ## will improve performance!
     if np.abs(delta_angle) > 10:
         turn_angle = 15
+        rpm_speed = 750
     else:
         turn_angle = 5
+        rpm_speed = 550
 
     # which way do we have to turn
     if delta_angle>2: # need to turn to right!
