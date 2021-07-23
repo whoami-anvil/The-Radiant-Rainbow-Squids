@@ -102,7 +102,7 @@ class BackSeat ():
 				### self.__autonomy.decide() probably goes here!
 				### ---------------------------------------------------------- #
 
-				self.__autonomy.decide()
+				delta_rudder, new_engine_speed = self.__autonomy.decide()
 
 				log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
 				writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
