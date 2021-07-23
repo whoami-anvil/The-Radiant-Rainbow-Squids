@@ -60,7 +60,7 @@ class AUVController():
 		self.__heading = final_heading
 
 	def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
-        turn_angle = None #turn angle
+		turn_angle = None #turn angle
 		new_engine_speed = None # RPM, as default
 
 		# Z - AL Logic
