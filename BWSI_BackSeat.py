@@ -115,6 +115,8 @@ class BackSeat ():
 								 'Red Bouys' : red,
 								 'Error' : "None"})
 
+                print(engine_started)
+
 				if not(engine_started) and (self.__current_time - self.__start_time) > 0:
 
 					## We want to change the speed. For now we will always use the RPM (1500 Max)
@@ -150,7 +152,6 @@ class BackSeat ():
 
 		except:
 
-			print("Exception")
 			self.__client.cleanup()
 			client.join()
 
