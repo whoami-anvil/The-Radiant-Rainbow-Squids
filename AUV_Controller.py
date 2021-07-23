@@ -103,9 +103,9 @@ class AUVController ():
             self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
         # determine whether and what command to issue to desired heading
-        cmd = self.__select_command()
+        rudder, speed = self.__select_command()
 
-        return cmd
+        return rudder, speed
 
 
     # return the desired heading to a public requestor
@@ -149,8 +149,9 @@ class AUVController ():
     def __select_command (self):
         # need this to return rudder and speed command also
 
-        # Unless we need to issue a command, we will return None
-        rudder_command, speed_command = None
+        # Unless we need to issue a command, we will return None for both commands
+        rudder_command = None
+        speed_command = None
 
         # determine the angle between current and desired heading
         delta_angle = self.__desired_heading - self.__heading
@@ -181,16 +182,18 @@ class AUVController ():
 
             if self.__rudder >= 0: # rudder is turning the other way!
 
-                cmd = f"RIGHT {turn_command}"
+                rudder_command = f"RIGHT {turn_command}"
 
         elif delta_angle<-2: # need to turn to left!
 
             if self.__rudder <= 0: # rudder is turning the other way!
 
-                cmd = f"LEFT {turn_command}"
+                rudder_command = f"LEFT {turn_command}"
 
         else: #close enough!
 
             cmd = "RUDDER AMIDSHIPS"
 
-        return rudder_command
+        speed_command = "ENGINE HALF AHEAD"
+
+        return rudder_command, speed_command
