@@ -68,6 +68,7 @@ class BackSeat ():
 
 			### These flags are for the test code. Remove them after the initial test!
 			engine_started = False
+			print(engine_started)
 
 			while True:
 
