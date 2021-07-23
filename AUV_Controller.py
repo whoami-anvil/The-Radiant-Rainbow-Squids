@@ -29,8 +29,6 @@ class AUVController():
         # assume we want to be going the direction we're going for now
         self.__desired_heading = auv_state['heading']
 
-<<<<<<< Updated upstream
-
         #used for keeping track of times in AUV
         self.__time_list = []
 
@@ -62,6 +60,8 @@ class AUVController():
 
     def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
 
+		# Z - AL Logic
+
 		# update state information
         self.__heading = auv_state['heading']
         self.__speed = auv_state['speed']
@@ -76,7 +76,7 @@ class AUVController():
 
         # determine whether and what command to issue to desired heading
         cmd = self.__select_command()
-        
+
         return cmd
 
     # return the desired heading to a public requestor

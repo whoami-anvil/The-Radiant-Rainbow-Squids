@@ -67,6 +67,8 @@ class BackSeat ():
             engine_started = False
             turned = False
 
+			# Z - Log base state
+
             while True:
 
                 now = datetime.datetime.utcnow().timestamp()
@@ -85,6 +87,7 @@ class BackSeat ():
 
                         print(f"{str(msg, 'utf-8')}")
                         self.process_message(str(msg, 'utf-8'))
+						# Z - Log updated state
                         # print(f"{self.__auv_state}")
 
                 ### ---------------------------------------------------------- #
@@ -100,6 +103,13 @@ class BackSeat ():
                 ### self.__autonomy.decide() probably goes here!
                 ### ---------------------------------------------------------- #
 
+
+				# Z - We need to add decide command and save outputs
+				new_rudder, new_engine = self.__autonomy.decide()
+
+				# Z - We need to save our output message
+
+
                 ### turn your output message into a BPRMB request!
 
                 time.sleep(1 / self.__warp)
@@ -107,6 +117,8 @@ class BackSeat ():
                 # ------------------------------------------------------------ #
                 # ----This is example code to show commands being issued
                 # ------------------------------------------------------------ #
+                # C - edit example code to modify BPRMB commands
+
                 if True:
                     print(f"{self.__current_time - self.__start_time}")
                     if not engine_started and (self.__current_time - self.__start_time) > 3:
@@ -196,7 +208,7 @@ class BackSeat ():
     def send_status (self):
 
         #print("sending status...")
-        self.__current_time = time.time()
+        self.__current_time = datetime.datetime.utcnow().timestamp()
         hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
         msg = BluefinMessages.BPSTS(hhmmss, 1, 'BWSI Autonomy OK')
         self.send_message(msg)
@@ -250,6 +262,9 @@ class BackSeat ():
 
 
 def main():
+
+	# Z - Create logging file
+	# Z - Write headers to logging file
 
     if len(sys.argv) > 1:
 
