@@ -33,7 +33,7 @@ class BackSeat ():
         self.__current_time = datetime.datetime.utcnow().timestamp()
         self.__start_time = self.__current_time
         self.__warp = warp
-
+		# auv state, now with depth, altitude, roll, pitch, and last fix time
         self.__auv_state = dict([
             ('position', (None, None)),
             ('latlon', None),
@@ -72,6 +72,7 @@ class BackSeat ():
             while True:
 
                 now = datetime.datetime.utcnow().timestamp()
+				# delta_time can be used for time difference calculation in decide?
                 delta_time = (now - self.__current_time) * self.__warp
 
                 self.send_status()
@@ -150,6 +151,19 @@ class BackSeat ():
                 # ------------------------------------------------------------ #
                 # ----End of example code
                 # ------------------------------------------------------------ #
+				# ------------------------------------------------------------ #
+                # ----This is pseudocode to show what the loop will look like
+                # ------------------------------------------------------------ #
+				# while not shutdown
+				# print the difference in times
+				# get the datetime information
+				# get buoy information
+				# determine desired heading and speed in controller class
+				# converting command to NMEA sentence
+				# send $BPRMB sentence to front seat
+				# update AUV Controller State
+
+				#C - use BluefinMessages.BPRMB() to convert command from controller logic to BPRMB message
 
         except:
 
