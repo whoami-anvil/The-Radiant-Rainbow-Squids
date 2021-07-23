@@ -174,7 +174,7 @@ class SandsharkClient():
             _ = self.__outgoing.get() # dump message
             self.__outgoing.task_done()
         self.__outgoing.put(bytes(cmd, 'utf-8'))
-		print(self.__outgoing)
+        print(self.__outgoing)
 
     # pick up whatever messages have been accumulated since last request
     def receive_mail(self):
