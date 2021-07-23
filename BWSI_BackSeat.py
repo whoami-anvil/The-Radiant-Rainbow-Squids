@@ -150,6 +150,7 @@ class BackSeat ():
 
 		except:
 
+			print("Exception")
 			self.__client.cleanup()
 			client.join()
 
