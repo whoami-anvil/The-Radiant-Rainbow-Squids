@@ -102,7 +102,7 @@ class BackSeat ():
 				])
 
 				### self.__autonomy.decide() probably goes here!
-
+				# need to add new speed command
 				new_rudder, new_speed = self.__autonomy.decide()
 				#need to pass things into it
 				#need this line to return outputs, currently returns nothing

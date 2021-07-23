@@ -147,9 +147,10 @@ class AUVController ():
 
     # choose a command to send to the front seat
     def __select_command (self):
+        # need this to return rudder and speed command also
 
         # Unless we need to issue a command, we will return None
-        cmd = None
+        rudder_command, speed_command = None
 
         # determine the angle between current and desired heading
         delta_angle = self.__desired_heading - self.__heading
@@ -192,4 +193,4 @@ class AUVController ():
 
             cmd = "RUDDER AMIDSHIPS"
 
-        return cmd
+        return rudder_command
