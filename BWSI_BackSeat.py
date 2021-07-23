@@ -15,6 +15,7 @@ import time
 import datetime
 
 import utm
+import csv
 
 from Image_Processor import ImageProcessor
 from AUV_Controller import AUVController
