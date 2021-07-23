@@ -139,6 +139,17 @@ class BackSeat ():
                 # ------------------------------------------------------------ #
                 # ----End of example code
                 # ------------------------------------------------------------ #
+				# ------------------------------------------------------------ #
+                # ----This is pseudocode to show what the loop will look like
+                # ------------------------------------------------------------ #
+				# while not shutdown
+				# print the difference in times
+				# get the datetime information
+				# get buoy information
+				# determine desired heading and speed in controller class
+				# converting command to NMEA sentence
+				# send $BPRMB sentence to front seat
+				# update AUV Controller State
 
 				#C - use BluefinMessages.BPRMB() to convert command from controller logic to BPRMB message
 
