@@ -24,7 +24,7 @@ from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
 
-writer = None
+log_file_name = None
 
 class BackSeat ():
 
@@ -103,6 +103,9 @@ class BackSeat ():
 				### ---------------------------------------------------------- #
 
 				self.__autonomy.decide()
+
+				log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
+				writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 
 				writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
 								 'Position' : self.__auv_state['position'],
@@ -190,7 +193,9 @@ class BackSeat ():
 
 		else:
 
-			self.__log_error(f"Cannot process this message type: {fields[0]} (process_message)")
+			#self.__log_error(f"Cannot process this message type: {fields[0]} (process_message)")
+
+			print(f"Cannot process this message type: {fields[0]}")
 
 	def send_message (self, msg):
 
