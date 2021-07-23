@@ -15,7 +15,7 @@ class AUVController():
         self.__heading = None
         self.__speed = None
         self.__rudder = None
-        self.__rudder_prev = 0.0
+		self.__rudder_prev = 0.0
         self.__position = None
 
         # assume we want to be going the direction we're going for now
@@ -46,8 +46,6 @@ class AUVController():
 		# adjust the delta heading based on rudder history
 		# delta_heading += self.__rudder_hydro_effect()
 
-        #update last known rudder state
-        self.__rudder_prev = self.__rudder
 
 		final_heading = np.mod(self.__heading + delta_heading + 360.0, 360.0)
 		avg_heading = np.mod( self.__heading + delta_heading / 2.0 + 360.0, 360.0)
@@ -61,39 +59,29 @@ class AUVController():
 
 		self.__heading = final_heading
 
-def __select_command(self):
-    # Unless we need to issue a command, we will return None
-    turn_angle = None #for rudder
-    rpm_speed = 750 #for RPM, 500RPM/knot, up to 5 knots
+    def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
 
-    # determine the angle between current and desired heading
-    delta_angle = self.__desired_heading - self.__heading
-    if delta_angle > 180: # angle too big, go the other way!
-        delta_angle = delta_angle - 360
-    if delta_angle < -180: # angle too big, go the other way!
-        delta_angle = delta_angle + 360
+		new_engine_speed = 750 # RPM, as default
 
-    # how much do we want to turn the rudder
-    ## Note: using STANDARD RUDDER only for now! A calculation here
-    ## will improve performance!
-    if np.abs(delta_angle) > 10:
-        turn_angle = 15
-    else:
-        turn_angle = 5
+		# Z - AL Logic
+        #decide rudder angles
+        #figure out how to get it to move there based on its last rudder angle
+		# update state information
+        self.__heading = auv_state['heading']
+        self.__speed = auv_state['speed']
+        self.__rudder = auv_state['rudder']
+        self.__position = auv_state['position']
 
-    # which way do we have to turn
-    if delta_angle>2: # need to turn to right!
-        if self.__rudder >= 0: # rudder is turning the other way!
-            pass
-    elif delta_angle<-2: # need to turn to left!
-        if self.__rudder <= 0: # rudder is turning the other way!
-            turn_angle = -turn_angle
-    else: #close enough!
-        turn_angle = 0
-    #adjust turn angle in comparison to previous rudder angle
-    rudder_turn = self.__rudder_prev - turn_angle
+        # determine what heading we want to go
+        if sensor_type.upper() == 'POSITION': # known positions of buoys
+            self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
+        elif sensor_type.upper() == 'ANGLE': # camera sensor
+            self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
-    return rudder_turn
+        # determine whether and what command to issue to desired heading
+        delta_rudder, new_engine_speed = self.__select_command()
+
+        return delta_rudder, new_engine_speed
 
     # return the desired heading to a public requestor
     def get_desired_heading(self):
@@ -123,30 +111,40 @@ def __select_command(self):
         return tgt_hdg
 
     # choose a command to send to the front seat
-    def __select_command(self):
-        # Unless we need to issue a command, we will return None
-        cmd = None
+def __select_command(self):
+    # Unless we need to issue a command, we will return None
+    turn_angle = None #for rudder
+    rpm_speed = 750 #for RPM, 500RPM/knot, up to 5 knots
 
-        # determine the angle between current and desired heading
-        delta_angle = self.__desired_heading - self.__heading
-        if delta_angle > 180: # angle too big, go the other way!
-            delta_angle = delta_angle - 360
-        if delta_angle < -180: # angle too big, go the other way!
-            delta_angle = delta_angle + 360
+    # determine the angle between current and desired heading
+    delta_angle = self.__desired_heading - self.__heading
+    if delta_angle > 180: # angle too big, go the other way!
+        delta_angle = delta_angle - 360
+    if delta_angle < -180: # angle too big, go the other way!
+        delta_angle = delta_angle + 360
 
-        # how much do we want to turn the rudder
-        ## Note: using STANDARD RUDDER only for now! A calculation here
-        ## will improve performance!
-        turn_command = "STANDARD RUDDER"
+    # how much do we want to turn the rudder
+    ## Note: using STANDARD RUDDER only for now! A calculation here
+    ## will improve performance!
+    # with delta angle, match anything above zero to thirty degrees / 1.5 knots - anything above proportionally
+    # scales to 2 knots
+    if np.abs(delta_angle) > 10:
+        turn_angle = 15
+        rpm_speed = 1000
+    else:
+        turn_angle = 5
+        rpm_speed = 750
 
-        # which way do we have to turn
-        if delta_angle>2: # need to turn to right!
-            if self.__rudder >= 0: # rudder is turning the other way!
-                cmd = f"RIGHT {turn_command}"
-        elif delta_angle<-2: # need to turn to left!
-            if self.__rudder <= 0: # rudder is turning the other way!
-                cmd = f"LEFT {turn_command}"
-        else: #close enough!
-            cmd = "RUDDER AMIDSHIPS"
+    # which way do we have to turn
+    if delta_angle>2: # need to turn to right!
+        if self.__rudder >= 0: # rudder is turning the other way!
+            pass
+    elif delta_angle<-2: # need to turn to left!
+        if self.__rudder <= 0: # rudder is turning the other way!
+            turn_angle = -turn_angle
+    else: #close enough!
+        turn_angle = 0
+    #adjust turn angle in comparison to previous rudder angle
+    rudder_turn = self.__rudder_prev - turn_angle
 
-        return cmd
+    return rudder_turn, rpm_speed

@@ -23,6 +23,8 @@ from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
 
+writer = None
+
 class BackSeat ():
 
     # we assign the mission parameters on init
@@ -65,9 +67,6 @@ class BackSeat ():
 
             ### These flags are for the test code. Remove them after the initial test!
             engine_started = False
-            turned = False
-
-			# Z - Log base state
 
             while True:
 
@@ -88,7 +87,6 @@ class BackSeat ():
 
                         print(f"{str(msg, 'utf-8')}")
                         self.process_message(str(msg, 'utf-8'))
-						# Z - Log updated state
                         # print(f"{self.__auv_state}")
 
                 ### ---------------------------------------------------------- #
@@ -97,73 +95,54 @@ class BackSeat ():
                 ###
                 ### Here you process the image and return the angles to target
                 ### green, red = self.__detect_buoys(img)
-                self.__buoy_detector.run(self.__auv_state)
+                red, green = self.__buoy_detector.run(self.__auv_state)
                 ### ---------------------------------------------------------- #
-
 
                 ### self.__autonomy.decide() probably goes here!
                 ### ---------------------------------------------------------- #
 
+				self.__autonomy.decide()
 
-				# Z - We need to add decide command and save outputs
-				new_rudder, new_engine = self.__autonomy.decide()
+				writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
+								 'Position' : self.__auv_state['position'],
+								 'Current Heading (deg)' : self.__auv_state['heading'],
+								 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
+								 'Green Bouys' : green,
+								 'Red Bouys' : red,
+								 'Error' : "None"})
 
-				# Z - We need to save our output message
+				if not(engine_started) and (self.__current_time - self.__start_time) > 0:
 
+					## We want to change the speed. For now we will always use the RPM (1500 Max)
+					self.__current_time = datetime.datetime.utcnow().timestamp()
+					# This is the timestamp format from NMEA: hhmmss.ss
+					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 
-                ### turn your output message into a BPRMB request!
+					cmd = f"BPRMB,{hhmmss},,,,750,0,1"
 
-                time.sleep(1 / self.__warp)
+					# NMEA requires a checksum on all the characters between the $ and the *
+					# you can use the BluefinMessages.checksum() function to calculate
+					# and write it like below. The checksum goes after the *
+					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+					self.send_message(msg)
 
-                # ------------------------------------------------------------ #
-                # ----This is example code to show commands being issued
-                # ------------------------------------------------------------ #
-                # C - edit example code to modify BPRMB commands
+					engine_started = True
 
-                if True:
-                    print(f"{self.__current_time - self.__start_time}")
-                    if not engine_started and (self.__current_time - self.__start_time) > 3:
-                        ## We want to change the speed. For now we will always use the RPM (1500 Max)
-                        self.__current_time = datetime.datetime.utcnow().timestamp()
-                        # This is the timestamp format from NMEA: hhmmss.ss
-                        hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+				else:
 
-                        cmd = f"BPRMB,{hhmmss},,,,750,0,1"
-                        # NMEA requires a checksum on all the characters between the $ and the *
-                        # you can use the BluefinMessages.checksum() function to calculate
-                        # and write it like below. The checksum goes after the *
-                        msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-                        self.send_message(msg)
-                        engine_started = True
+					# Z - We need to add decide command and save outputs
+					delta_rudder, new_engine_speed = self.__autonomy.decide()
 
-                    if not turned and (self.__current_time - self.__start_time) > 30:
-                        ## We want to set the rudder position, use degrees plus or minus
-                        ## This command is how much to /change/ the rudder position, not to
-                        ## set the rudder
-                        self.__current_time = datetime.datetime.utcnow().timestamp()
-                        hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+	                ### turn your output message into a BPRMB request!
 
-                        cmd = f"BPRMB,{hhmmss},-15,,,750,0,1"
-                        msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-                        self.send_message(msg)
-                        turned = True
+	                time.sleep(1 / self.__warp)
 
-                # ------------------------------------------------------------ #
-                # ----End of example code
-                # ------------------------------------------------------------ #
-				# ------------------------------------------------------------ #
-                # ----This is pseudocode to show what the loop will look like
-                # ------------------------------------------------------------ #
-				# while not shutdown
-				# print the difference in times
-				# get the datetime information
-				# get buoy information
-				# determine desired heading and speed in controller class
-				# converting command to NMEA sentence
-				# send $BPRMB sentence to front seat
-				# update AUV Controller State
-
-				#C - use BluefinMessages.BPRMB() to convert command from controller logic to BPRMB message
+					# Z - We need to save our output message
+					self.__current_time = datetime.datetime.utcnow().timestamp()
+					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+					cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
+					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+					self.send_message(msg)
 
         except:
 
@@ -210,9 +189,7 @@ class BackSeat ():
 
         else:
 
-            print(f"I do not know how to process this message type: {fields[0]}")
-
-
+			self.__log_error(f"Cannot process this message type: {fields[0]} (process_message)")
 
     def send_message (self, msg):
 
@@ -271,14 +248,30 @@ class BackSeat ():
 
         return (local_pos[0] - self.__datum_position[0], local_pos[1] - self.__datum_position[1])
 
+	def __log_error (self, error_msg):
 
+		writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
+						 'Position' : None,
+						 'Current Heading (deg)' : None,
+						 'Desired Heading (deg)' : None,
+						 'Green Bouys' : None,
+						 'Red Bouys' : None,
+						 'Error' : error_msg})
 
-
+		self.__current_time = time.time()
+		hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+		msg = BluefinMessages.BPABT(hhmmss, error_msg)
+		self.send_message(msg)
 
 def main():
 
 	# Z - Create logging file
 	# Z - Write headers to logging file
+
+	log_file_name = f"mission_{datetime.datetime.now()}.csv"
+	log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
+	writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
+	writer.writeheader()
 
     if len(sys.argv) > 1:
 
