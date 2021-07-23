@@ -152,7 +152,7 @@ class SandsharkClient():
                     try:
                         self.__sockt.connect((self.__host, self.__port))
                     except:
-						print("Could not connect")
+                        print("Could not connect")
                         pass
                     self.__sockt.send(next_msg)
                     self.__outgoing.task_done()
