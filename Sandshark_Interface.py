@@ -153,9 +153,6 @@ class SandsharkClient():
 						#FAILING
 						self.__sockt.connect((self.__host, self.__port))
 					except:
-						self.__sockt.connect((self.__host, self.__port))
-						print(f"Host: {self.__host}\nPort: {self.__port}")
-						self.__sockt.connect((self.__host, self.__port))
 						pass
 					self.__sockt.send(next_msg)
 					self.__outgoing.task_done()

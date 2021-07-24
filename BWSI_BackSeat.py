@@ -8,14 +8,13 @@ This is the simulated Sandshark front seat
 
 @author: BWSI AUV Challenge Instructional Staff
 """
-import sys
+
 import time
 import threading
-import time
 import datetime
 
-import utm
 import csv
+import utm
 
 from Image_Processor import ImageProcessor
 from AUV_Controller import AUVController
@@ -198,6 +197,8 @@ class BackSeat ():
 			self.__auv_state['pitch'] = float(fields[11])
 			fields2 = fields[12].split('*')
 			self.__auv_state['last_fix_time'] = self.receive_nmea_time(fields2[0])
+
+			self.__autonomy.update_state ()
 
 		else:
 
