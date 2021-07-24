@@ -150,7 +150,6 @@ class SandsharkClient():
 				if not self.__outgoing.empty():
 					next_msg = self.__outgoing.get()
 					try:
-						#FAILING
 						self.__sockt.connect((self.__host, self.__port))
 					except:
 						pass
@@ -175,7 +174,6 @@ class SandsharkClient():
 			_ = self.__outgoing.get() # dump message
 			self.__outgoing.task_done()
 		self.__outgoing.put(bytes(cmd, 'utf-8'))
-		print(self.__outgoing.queue)
 
 	# pick up whatever messages have been accumulated since last request
 	def receive_mail(self):

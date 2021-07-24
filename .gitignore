@@ -7,4 +7,5 @@ Mission\ Reconstruction\ and\ Analysis\ Programs/
 
 # Mission Data
 mission_logs/
+frames/
 *.csv

@@ -12,6 +12,7 @@ This is the simulated Sandshark front seat
 import time
 import threading
 import datetime
+import sys
 
 import csv
 import utm
@@ -23,21 +24,30 @@ from pynmea2 import pynmea2
 import BluefinMessages
 from Sandshark_Interface import SandsharkClient
 
-log_file_name = None
+log_file_name_initial = f"mission_logs/mission_{datetime.datetime.now()}.csv"
+log_file_write = open(log_file_name_initial, "w", encoding = 'UTF8', newline = '')
+writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 
 class BackSeat ():
 
 	# we assign the mission parameters on init
-	def __init__ (self, host = 'localhost', port = 8000, warp = 1):
+	def __init__ (self, host = 'localhost', port = 8000, warp = 1, log_file_name = "mission1.csv"):
 
 		# back seat acts as client
 		self.__client = SandsharkClient(host = host, port = port)
 		self.__current_time = datetime.datetime.utcnow().timestamp()
 		self.__start_time = self.__current_time
 		self.__warp = warp
+		self.__log_file_name = log_file_name
+
+		# we'll use the first navigation update as datum
+		self.__datum = None
+		self.__datum_position = None
+
 		# auv state, now with depth, altitude, roll, pitch, and last fix time
 		self.__auv_state = dict([
 			('position', (None, None)),
+			('datum', None),
 			('latlon', None),
 			('heading', None),
 			('depth', None),
@@ -47,118 +57,110 @@ class BackSeat ():
 			('last_fix_time', None)
 			])
 
-		# we'll use the first navigation update as datum
-		self.__datum = None
-
 		# set to PICAM for the real camera
 		self.__buoy_detector = ImageProcessor(camera = 'SIM')
 		self.__autonomy = AUVController()
 
 	def run (self):
 
-		try:
+		#try:
 
-			# connect the client
-			client = threading.Thread(target = self.__client.run, args = ())
-			client.start()
+		# connect the client
+		client = threading.Thread(target = self.__client.run, args = ())
+		client.start()
 
-			msg = BluefinMessages.BPLOG('ALL', 'ON')
-			self.send_message(msg)
+		msg = BluefinMessages.BPLOG('ALL', 'ON')
+		self.send_message(msg)
 
-			### These flags are for the test code. Remove them after the initial test!
-			engine_started = False
+		### These flags are for the test code. Remove them after the initial test!
+		engine_started = False
 
-			while True:
+		while True:
 
-				now = datetime.datetime.utcnow().timestamp()
-				# delta_time can be used for time difference calculation in decide?
-				delta_time = (now - self.__current_time) * self.__warp
+			msgs = self.get_mail()
 
-				print("Before")
+			if ((self.__auv_state['heading'] == None) and (len(msgs) == 0)):
 
-				self.send_status()
+				continue
 
-				print("Passed")
+			now = datetime.datetime.utcnow().timestamp()
+			# delta_time can be used for time difference calculation in decide?
+			delta_time = (now - self.__current_time) * self.__warp
 
-				self.__current_time += delta_time
+			self.send_status()
 
-				msgs = self.get_mail()
-				print('message: ')
-				print(len(msgs)) #check message length before if statement
-				if len(msgs) > 0:
+			self.__current_time += delta_time
 
-					print("\nReceived from Frontseat:")
+			if len(msgs) > 0:
 
-					for msg in msgs:
+				print("\nReceived from Frontseat:")
 
-						print(f"{str(msg, 'utf-8')}")
-						self.process_message(str(msg, 'utf-8'))
-						# print(f"{self.__auv_state}")
+				for msg in msgs:
 
-				### ---------------------------------------------------------- #
-				### Here should be the request for a photo from the camera
-				### img = self.__camera.acquire_image()
-				###
-				### Here you process the image and return the angles to target
-				### green, red = self.__detect_buoys(img)
-				red, green = self.__buoy_detector.run(self.__auv_state)
-				### ---------------------------------------------------------- #
+					print(f"{str(msg, 'utf-8')}")
+					self.process_message(str(msg, 'utf-8'))
 
-				### self.__autonomy.decide() probably goes here!
-				### ---------------------------------------------------------- #
+			### ---------------------------------------------------------- #
+			### Here should be the request for a photo from the camera
+			### img = self.__camera.acquire_image()
+			###
+			### Here you process the image and return the angles to target
+			### green, red = self.__detect_buoys(img)
+			red, green = self.__buoy_detector.run(self.__auv_state)
+			### ---------------------------------------------------------- #
 
-				delta_rudder, new_engine_speed = self.__autonomy.decide()
+			### self.__autonomy.decide() probably goes here!
+			### ---------------------------------------------------------- #
 
-				log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
-				writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
+			print(f"Current Heading: {self.__auv_state['heading']}\nDesired Heading: {self.__autonomy.get_desired_heading()}")
 
-				writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
-								 'Position' : self.__auv_state['position'],
-								 'Current Heading (deg)' : self.__auv_state['heading'],
-								 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
-								 'Green Bouys' : green,
-								 'Red Bouys' : red,
-								 'Error' : "None"})
+			#log_file_write = open(self.__log_file_name, "w", encoding = 'UTF8', newline = '')
+			#writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
+			writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
+							 'Position' : self.__auv_state['position'],
+							 'Current Heading (deg)' : self.__auv_state['heading'],
+							 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
+							 'Green Bouys' : green,
+							 'Red Bouys' : red,
+							 'Error' : "None"})
 
-				print(engine_started)
+			if not(engine_started) and (self.__current_time - self.__start_time) > 0:
 
-				if not(engine_started) and (self.__current_time - self.__start_time) > 0:
+				## We want to change the speed. For now we will always use the RPM (1500 Max)
+				self.__current_time = datetime.datetime.utcnow().timestamp()
+				# This is the timestamp format from NMEA: hhmmss.ss
+				hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 
-					## We want to change the speed. For now we will always use the RPM (1500 Max)
-					self.__current_time = datetime.datetime.utcnow().timestamp()
-					# This is the timestamp format from NMEA: hhmmss.ss
-					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+				cmd = f"BPRMB,{hhmmss},,,,750,0,1"
 
-					cmd = f"BPRMB,{hhmmss},,,,750,0,1"
+				# NMEA requires a checksum on all the characters between the $ and the *
+				# you can use the BluefinMessages.checksum() function to calculate
+				# and write it like below. The checksum goes after the *
+				msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+				self.send_message(msg)
 
-					# NMEA requires a checksum on all the characters between the $ and the *
-					# you can use the BluefinMessages.checksum() function to calculate
-					# and write it like below. The checksum goes after the *
-					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-					self.send_message(msg)
+				engine_started = True
 
-					engine_started = True
+			else:
 
-				else:
+				# Z - We need to add decide command and save outputs
+				delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, red, green)
 
-					# Z - We need to add decide command and save outputs
-					delta_rudder, new_engine_speed = self.__autonomy.decide()
+				### turn your output message into a BPRMB request!
 
-					### turn your output message into a BPRMB request!
+				# Z - We need to save our output message
+				self.__current_time = datetime.datetime.utcnow().timestamp()
+				hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+				cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
+				msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+				self.send_message(msg)
 
-					time.sleep(1 / self.__warp)
+			time.sleep(1 / self.__warp)
 
-					# Z - We need to save our output message
-					self.__current_time = datetime.datetime.utcnow().timestamp()
-					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-					cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
-					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-					self.send_message(msg)
+		#except:
 
-		except:
-
-			self.__client.cleanup()
-			client.join()
+		#	self.__client.cleanup()
+		#	client.join()
 
 
 	def process_message (self, msg):
@@ -184,6 +186,7 @@ class BackSeat ():
 				self.__datum = self.__auv_state['latlon']
 				self.__datum_position = utm.from_latlon(self.__datum[0], self.__datum[1])
 				self.__position = (0, 0)
+				self.__auv_state['position'] = (0, 0)
 
 			else:
 
@@ -198,7 +201,7 @@ class BackSeat ():
 			fields2 = fields[12].split('*')
 			self.__auv_state['last_fix_time'] = self.receive_nmea_time(fields2[0])
 
-			self.__autonomy.update_state ()
+			self.__autonomy.update_state(self.__auv_state)
 
 		else:
 
@@ -213,11 +216,10 @@ class BackSeat ():
 
 	def send_status (self):
 
-		#print("sending status...")
+		print("sending status...")
 		self.__current_time = datetime.datetime.utcnow().timestamp()
 		hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 		msg = BluefinMessages.BPSTS(hhmmss, 1, 'BWSI Autonomy OK')
-		print(msg)
 		self.send_message(msg)
 
 	def get_mail (self):
@@ -266,6 +268,8 @@ class BackSeat ():
 
 	def __log_error (self, error_msg):
 
+		log_file_write = open(self.__log_file_name, "w", encoding = 'UTF8', newline = '')
+		writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 		writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
 						 'Position' : None,
 						 'Current Heading (deg)' : None,
@@ -283,10 +287,6 @@ def main():
 
 	# Z - Create logging file
 	# Z - Write headers to logging file
-
-	log_file_name = f"mission_{datetime.datetime.now()}.csv"
-	log_file_write = open(log_file_name, "w", encoding = 'UTF8', newline = '')
-	writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 	writer.writeheader()
 
 	if len(sys.argv) > 1:
@@ -306,7 +306,7 @@ def main():
 		port = 8042
 
 	print(f"host = {host}, port = {port}")
-	backseat = BackSeat(host = host, port = port)
+	backseat = BackSeat(host = host, port = port, log_file_name = log_file_name_initial)
 	backseat.run()
 
 

@@ -14,8 +14,8 @@ class AUVController ():
 
 		# initialize state information
 		self.__heading = None
-		self.__speed = None
-		self.__rudder = None
+		self.__speed = 750
+		self.__rudder = 0.0
 		self.__rudder_prev = 0.0
 		self.__position = None
 		self.__speed_knots = None
@@ -23,12 +23,11 @@ class AUVController ():
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
-		self.__time_list = None
+		self.__time_list = []
 
 	def initialize(self, auv_state):
+
 		self.__heading = auv_state['heading']
-		self.__speed = auv_state['speed']
-		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
 		self.__speed_knots = self.__speed / 250
 		self.__speed_mps = self.__speed_knots * (1852 / 3600)
@@ -43,31 +42,35 @@ class AUVController ():
 	def update_state (self, auv_state):
 
 		self.__heading = auv_state['heading']
-		self.__speed = auv_state['speed']
-		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
-		self.__speed_knots = self.__speed / 250
-		self.__speed_mps = self.__speed_knots * (1852 / 3600)
 
 		#used for keeping track of times in AUV
 		self.__time_list.append(auv_state['last_fix_time'])
 
-	def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+	def decide (self, auv_state, red_buoys, green_buoys, sensor_type = 'POSITION'):
 
 		#decide rudder angles
 		#figure out how to get it to move there based on its last rudder angle
 		# update state information
 		self.__heading = auv_state['heading']
-		self.__speed = auv_state['speed']
-		self.__rudder = auv_state['rudder']
 		self.__position = auv_state['position']
 
 		# determine what heading we want to go
-		if sensor_type.upper() == 'POSITION': # known positions of buoys
+
+		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
+		if (red_buoys == None or green_buoys == None):
+
+			return (self.__rudder_prev * -1), 750
+
+		elif sensor_type.upper() == 'POSITION': # known positions of buoys
+
+			print("Have seen bouys")
 
 			self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
 
 		elif sensor_type.upper() == 'ANGLE': # camera sensor
+
+			print("Have seen bouys")
 
 			self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
@@ -75,6 +78,10 @@ class AUVController ():
 		delta_rudder, new_engine_speed = self.__select_command()
 
 		self.__rudder_prev += delta_rudder
+
+		self.__speed = new_engine_speed
+		self.__speed_knots = self.__speed / 250
+		self.__speed_mps = self.__speed_knots * (1852 / 3600)
 
 		return delta_rudder, new_engine_speed
 
