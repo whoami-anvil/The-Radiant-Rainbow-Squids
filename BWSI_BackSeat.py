@@ -31,7 +31,7 @@ writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Positi
 class BackSeat ():
 
 	# we assign the mission parameters on init
-	def __init__ (self, host = 'localhost', port = 8000, warp = 1, log_file_name = "mission1.csv"):
+	def __init__ (self, host = 'localhost', port = 8042, warp = 1, log_file_name = "mission1.csv"):
 
 		# back seat acts as client
 		self.__client = SandsharkClient(host = host, port = port)
