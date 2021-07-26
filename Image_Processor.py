@@ -47,7 +47,7 @@ class ImageProcessor():
 		self.__image_dir = pathlib.Path(log_dir, 'frames')
 		self.__image_dir.mkdir(parents = True, exist_ok = True)
 
-	def sensor_position (self, pix_x, pix_y, res_x, res_y):
+	def sensor_position_m (self, pix_x, pix_y, res_x, res_y):
 
 		x = pix_x - (0.5 * res_x)
 		y = (0.5 * res_y) - pix_y
@@ -59,6 +59,13 @@ class ImageProcessor():
 		sensor_pos_y = (y * y_prop)
 
 		return (sensor_pos_x, sensor_pos_y)
+
+	def sensor_position_px (self, pix_x, pix_y, res_x, res_y):
+
+		x = pix_x - (0.5 * res_x)
+		y = (0.5 * res_y) - pix_y
+
+		return (x, y)
 
 	def get_angles (self, x, y):
 
@@ -172,33 +179,49 @@ class ImageProcessor():
 
 			for contour in contours_red:
 
-				x, y = self.sensor_position(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]), np.max([item[0][1] for item in contour]) - np.min([item[0][1] for item in contour]), img.shape[1], img.shape[0])
+				x, y = self.sensor_position_m(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]), np.max([item[0][1] for item in contour]) - np.min([item[0][1] for item in contour]), img.shape[1], img.shape[0])
 				contour_dims_red.append((x, y))
 
 				img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
-				contour_centers_red.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))))
+				center_x, center_y = self.sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
+				contour_centers_red.append((x, y))
+
+				hori, vert = self.get_angles(x, y)
 
 				contour_distances_red.append(-1 * (((3.04 * 250 * img.shape[1]) / (np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]) * 3.68)) / 1000))
 
 			for contour in contours_green:
 
-				x, y = self.sensor_position(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]), np.max([item[0][1] for item in contour]) - np.min([item[0][1] for item in contour]), img.shape[1], img.shape[0])
+				x, y = self.sensor_position_m(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]), np.max([item[0][1] for item in contour]) - np.min([item[0][1] for item in contour]), img.shape[1], img.shape[0])
 				contour_dims_green.append((x, y))
 
-				#img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
-				contour_centers_green.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))))
+				img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
+				center_x, center_y = self.sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
+				contour_centers_green.append((x, y))
 
-				hori, vert = self.get_angles(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])))
+				hori, vert = self.get_angles(center_x, center_y)
 
 				contour_distances_green.append(-1 * (((3.04 * 250 * img.shape[1]) / (np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]) * 3.68)) / 1000))
 
-			red_index = index(min(contour_distances_red))
-			green_index = index(min(contour_distances_green))
+			print(f"Dims Red: {contour_dims_red}\nDims Green: {contour_dims_green}\nCenters Red: {contour_centers_red}\nCenters Green: {contour_centers_green}\nDistances Red: {contour_distances_red}\nDistances Green: {contour_distances_green}")
 
-			red_angle_x, red_angle_y = self.get_angles(contour_centers_red[red_index][0], contour_centers_red[red_index][1])
-			green_angle_x, green_angle_y = self.get_angles(contour_centers_green[green_index][0], contour_centers_green[green_index][1])
+			if len(contour_distances_red) > 0:
 
-			red = ((np.tan(np.radians(red_angle_x)) * contour_distances_red[red_index]), contour_distances_red[red_index])
-			green = ((np.tan(np.radians(green_angle_x)) * contour_distances_green[green_index]), contour_distances_green[green_index])
+				red_index = contour_distances_red.index(min(contour_distances_red))
+				red_angle_x, red_angle_y = self.get_angles(contour_centers_red[red_index][0], contour_centers_red[red_index][1])
+				red = ((np.tan(np.radians(red_angle_x)) * contour_distances_red[red_index]), contour_distances_red[red_index])
+				print(f"Red Angle: {red_angle_x}")
+
+			if len(contour_distances_green) > 0:
+
+				green_index = contour_distances_green.index(min(contour_distances_green))
+				print(f"Green index: {green_index}")
+				print(f"Green x: {contour_centers_green[green_index][0]}, Green y: {contour_centers_green[green_index][1]}")
+				green_angle_x, green_angle_y = self.get_angles(contour_centers_green[green_index][0], contour_centers_green[green_index][1])
+				green = ((np.tan(np.radians(green_angle_x)) * contour_distances_green[green_index]), contour_distances_green[green_index])
+				print(f"Green Angle: {green_angle_x}")
+
+			plt.imshow(img)
+			plt.show()
 
 		return red, green
