@@ -94,11 +94,25 @@ class AUVController ():
 	def __heading_to_position (self, gnext, rnext):
 
 		# center of the next buoy pair
-		gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
+		tgt_hdg = self.__heading
 
+		if gnext and rnext:
+			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
+			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])) + 360,360)
+
+		elif gnext and not rnext:
+			#if only one gate, set gate "center" to buoy location for temporary redirection
+			gate_center = (gnext[0], gnext[1])
+			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])) + 360,360)
+		elif rnext and not gnext:
+			gate_center = (rnext[0], rnext[1])
+			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])) + 360,360)
+		# else, do nothing and go straight
 		# heading to gate_center
-		tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0]-self.__position[0],
-											   gate_center[1]-self.__position[1])) + 360,360)
+
 
 		return tgt_hdg
 
