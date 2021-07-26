@@ -55,7 +55,7 @@ class AUVController ():
 		# determine what heading we want to go
 
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
-		
+
 		if (red_buoys == None or green_buoys == None):
 
 			return (self.__rudder_prev * -1), 750
@@ -102,13 +102,33 @@ class AUVController ():
 
 		return tgt_hdg
 
-	def __heading_to_angle (self, gnext, rnext):
+	def __heading_to_angle(self, gnext, rnext):
+		#relative angle to the center of the next buoy pair
+		if(rnext == []) and (gnext == []):
+			tgt_hdg = np.mod(self.__heading + 360, 360)
 
-		# relative angle to the center of the next buoy pair
-		relative_angle = (gnext[0] + rnext[0]) / 2.0
+		elif rnext != [] and gnext != []:
 
-		# heading to center of the next buoy pair
-		tgt_hdg = self.__heading + relative_angle
+			print(rnext[0])
+
+			print(gnext[0])
+   			relative_angle = (gnext[0] + rnext[0]) / 2.0
+
+   # if ((self.__heading + relative_angle) < 360):
+			tgt_hdg = self.__heading + relative_angle
+
+   # elif ((self.__heading + relative_angle) >= 360):
+
+   # tgt_hdg = relative_angle - (360 - self.__heading)
+
+		elif len(gnext)>0:
+
+			tgt_hdg = self.__heading + gnext[0]
+
+		elif len(rnext)>0:
+
+			tgt_hdg = self.__heading + rnext[0]
+
 
 		return tgt_hdg
 
