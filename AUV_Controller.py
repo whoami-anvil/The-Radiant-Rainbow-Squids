@@ -104,13 +104,36 @@ class AUVController ():
 		return tgt_hdg
 
 	def __heading_to_angle(self, gnext, rnext):
-		# relative angle to the center of the next buoy pair
-		relative_angle = (gnext[0] + rnext[0]) / 2.0
-
-		# heading to center of the next buoy pair
-		tgt_hdg = self.__heading + relative_angle
-
-		return tgt_hdg
+     #relative angle to the center of the next buoy pair
+  if(rnext == []) and (gnext == []):
+      
+   tgt_hdg = np.mod(self.__heading + 360, 360)
+   
+  elif rnext != [] and gnext != []:
+      
+   print(rnext[0])
+   
+   print(gnext[0])
+   
+   relative_angle = (gnext[0] + rnext[0]) / 2.0
+   
+   # if ((self.__heading + relative_angle) < 360):
+       
+   tgt_hdg = self.__heading + relative_angle
+   
+   # elif ((self.__heading + relative_angle) >= 360):
+       
+   # tgt_hdg = relative_angle - (360 - self.__heading)
+   
+  elif len(gnext)>0:
+      
+   tgt_hdg = self.__heading + gnext[0]
+   
+  elif len(rnext)>0:
+      
+   tgt_hdg = self.__heading + rnext[0]
+   
+  return tgt_hdg
 
 	# choose a command to send to the front seat
 	def __select_command (self):
