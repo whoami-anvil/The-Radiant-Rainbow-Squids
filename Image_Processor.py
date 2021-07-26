@@ -14,8 +14,8 @@ import datetime
 
 import time
 import numpy as np
-import picamera
-import picamera.array
+#import picamera
+#import picamera.array
 
 import cv2
 
