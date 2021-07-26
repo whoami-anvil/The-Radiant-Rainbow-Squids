@@ -55,6 +55,7 @@ class AUVController ():
 		# determine what heading we want to go
 
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
+		
 		if (red_buoys == None or green_buoys == None):
 
 			return (self.__rudder_prev * -1), 750
