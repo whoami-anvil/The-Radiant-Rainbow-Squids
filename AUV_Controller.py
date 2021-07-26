@@ -89,7 +89,10 @@ class AUVController():
 
     # calculate the heading we want to go to reach the gate center
     def __heading_to_position(self, gnext=None, rnext=None):
-        # center of the next buoy pair
+		"""
+		with known buoy positions, return target heading
+		"""
+		# center of the next buoy pair
 		tgt_hdg = self.__heading
 		if gnext and rnext:
 	        gate_center = ((gnext[0]+rnext[0])/2.0, (gnext[1]+rnext[1])/2.0)
@@ -100,12 +103,17 @@ class AUVController():
 
         return tgt_hdg
 
-    def __heading_to_angle(self, gnext, rnext):
-        # relative angle to the center of the next buoy pair
-        relative_angle = (gnext[0] + rnext[0]) / 2.0
+    def __heading_to_angle(self, gnext=None, rnext=None):
+		"""
+		with known buoy angles, return target heading
+		"""
+		tgt_hdg = self.__heading
+		if gnext and rnext:
+			# relative angle to the center of the next buoy pair
+	        relative_angle = (gnext[0] + rnext[0]) / 2.0
 
-        # heading to center of the next buoy pair
-        tgt_hdg = self.__heading + relative_angle
+	        # heading to center of the next buoy pair
+	        tgt_hdg = self.__heading + relative_angle
 
         return tgt_hdg
 
