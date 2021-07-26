@@ -8,11 +8,11 @@ This is the simulated Sandshark front seat
 
 @author: BWSI AUV Challenge Instructional Staff
 """
-
+import sys
 import time
 import threading
+import time
 import datetime
-import sys
 
 import csv
 import utm
@@ -28,139 +28,150 @@ log_file_name_initial = f"mission_logs/mission_{datetime.datetime.now()}.csv"
 log_file_write = open(log_file_name_initial, "w", encoding = 'UTF8', newline = '')
 writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
 
-class BackSeat ():
+# Check the NMEA checksum
+def checkthesum(msg):
+    fields = msg.split('*')
+    cmd = fields[0][1:]
+    expected = str(hex(BluefinMessages.checksum(cmd))[2:])
+    if expected.upper() != fields[1].upper():
+        print(f"cmd = {cmd}\n")
+        print(f"{expected} != {fields[1]}\n")
+        return False
 
-	# we assign the mission parameters on init
+    return True
+
+class BackSeat():
+    # we assign the mission parameters on init
 	def __init__ (self, host = 'localhost', port = 8000, warp = 1, log_file_name = "mission1.csv"):
 
-		# back seat acts as client
-		self.__client = SandsharkClient(host = host, port = port)
-		self.__current_time = datetime.datetime.utcnow().timestamp()
-		self.__start_time = self.__current_time
-		self.__warp = warp
+        # back seat acts as client
+        self.__client = SandsharkClient(host=host, port=port)
+        self.__current_time = datetime.datetime.utcnow().timestamp()
+        self.__start_time = self.__current_time
 		self.__log_file_name = log_file_name
+		#self.__log_file = f"backseat_{self.__start_time}.log"
+        self.__warp = warp
 
-		# we'll use the first navigation update as datum
-		self.__datum = None
+        self.__auv_state = dict([
+            ('position', (None, None)),
+            ('latlon', None),
+            ('heading', None),
+            ('depth', None),
+            ('altitude', None),
+            ('roll', None),
+            ('pitch', None),
+            ('last_fix_time', None)
+            ])
+
+        # we'll use the first navigation update as datum
+        self.__datum = None
 		self.__datum_position = None
 
-		# auv state, now with depth, altitude, roll, pitch, and last fix time
-		self.__auv_state = dict([
-			('position', (None, None)),
-			('datum', None),
-			('latlon', None),
-			('heading', None),
-			('depth', None),
-			('altitude', None),
-			('roll', None),
-			('pitch', None),
-			('last_fix_time', None)
-			])
+        # set to PICAM for the real camera
+        self.__buoy_detector = ImageProcessor(camera='SIM')
+        self.__autonomy = AUVController()
 
-		# set to PICAM for the real camera
-		self.__buoy_detector = ImageProcessor(camera = 'SIM')
-		self.__autonomy = AUVController()
+    def run(self):
+        try:
+            # connect the client
+            client = threading.Thread(target=self.__client.run, args=())
+            client.start()
 
-	def run (self):
+            msg = BluefinMessages.BPLOG('ACK', 'ON')
+            self.send_message(msg)
 
-		#try:
+            msg = BluefinMessages.BPLOG('ALL', 'ON')
+            self.send_message(msg)
 
-		# connect the client
-		client = threading.Thread(target = self.__client.run, args = ())
-		client.start()
+            ### These flags are for the test code. Remove them after the initial test!
+            engine_started = False
+            turned = False
+            while True:
+				msgs = self.get_mail()
 
-		msg = BluefinMessages.BPLOG('ALL', 'ON')
-		self.send_message(msg)
+				if ((self.__auv_state['heading'] == None) and (len(msgs) == 0)):
 
-		### These flags are for the test code. Remove them after the initial test!
-		engine_started = False
+					continue
 
-		while True:
+                now = datetime.datetime.utcnow().timestamp()
+				# delta_time can be used for time difference calculation in decide?
+                delta_time = (now-self.__current_time) * self.__warp
 
-			msgs = self.get_mail()
+                self.send_status()
 
-			if ((self.__auv_state['heading'] == None) and (len(msgs) == 0)):
+                self.__current_time += delta_time
 
-				continue
 
-			now = datetime.datetime.utcnow().timestamp()
-			# delta_time can be used for time difference calculation in decide?
-			delta_time = (now - self.__current_time) * self.__warp
+                if len(msgs) > 0:
+                    print("\nReceived from Frontseat:")
 
-			self.send_status()
+                    for msg in msgs:
+                        print(f"{str(msg, 'utf-8')}")
+                        self.process_message(str(msg, 'utf-8'))
+                        print(f"{self.__auv_state}")
 
-			self.__current_time += delta_time
 
-			if len(msgs) > 0:
+                ### ---------------------------------------------------------- #
+                ### Here should be the request for a photo from the camera
+                ### img = self.__camera.acquire_image()
+                ###
+                ### Here you process the image and return the angles to target
+                ### green, red = self.__detect_buoys(img)
+                red, green = self.__buoy_detector.run(self.__auv_state)
+                ### ---------------------------------------------------------- #
 
-				print("\nReceived from Frontseat:")
 
-				for msg in msgs:
+                ### self.__autonomy.decide() probably goes here!
+                ### ---------------------------------------------------------- #
+                print(f"Current Heading: {self.__auv_state['heading']}\nDesired Heading: {self.__autonomy.get_desired_heading()}")
 
-					print(f"{str(msg, 'utf-8')}")
-					self.process_message(str(msg, 'utf-8'))
+				writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
+								 'Position' : self.__auv_state['position'],
+								 'Current Heading (deg)' : self.__auv_state['heading'],
+								 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
+								 'Green Bouys' : green,
+								 'Red Bouys' : red,
+								 'Error' : "None"})
+                ### turn your output message into a BPRMB request!
 
-			### ---------------------------------------------------------- #
-			### Here should be the request for a photo from the camera
-			### img = self.__camera.acquire_image()
-			###
-			### Here you process the image and return the angles to target
-			### green, red = self.__detect_buoys(img)
-			red, green = self.__buoy_detector.run(self.__auv_state)
-			### ---------------------------------------------------------- #
+                time.sleep(1/self.__warp)
 
-			### self.__autonomy.decide() probably goes here!
-			### ---------------------------------------------------------- #
+				if not(engine_started) and (self.__current_time - self.__start_time) > 0:
 
-			print(f"Current Heading: {self.__auv_state['heading']}\nDesired Heading: {self.__autonomy.get_desired_heading()}")
+					## We want to change the speed. For now we will always use the RPM (1500 Max)
+					self.__current_time = datetime.datetime.utcnow().timestamp()
+					# This is the timestamp format from NMEA: hhmmss.ss
+					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 
-			#log_file_write = open(self.__log_file_name, "w", encoding = 'UTF8', newline = '')
-			#writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
-			writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
-							 'Position' : self.__auv_state['position'],
-							 'Current Heading (deg)' : self.__auv_state['heading'],
-							 'Desired Heading (deg)' : self.__autonomy.get_desired_heading(),
-							 'Green Bouys' : green,
-							 'Red Bouys' : red,
-							 'Error' : "None"})
+					cmd = f"BPRMB,{hhmmss},,,,750,0,1"
 
-			if not(engine_started) and (self.__current_time - self.__start_time) > 0:
+					# NMEA requires a checksum on all the characters between the $ and the *
+					# you can use the BluefinMessages.checksum() function to calculate
+					# and write it like below. The checksum goes after the *
+					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+					self.send_message(msg)
 
-				## We want to change the speed. For now we will always use the RPM (1500 Max)
-				self.__current_time = datetime.datetime.utcnow().timestamp()
-				# This is the timestamp format from NMEA: hhmmss.ss
-				hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+					engine_started = True
 
-				cmd = f"BPRMB,{hhmmss},,,,750,0,1"
+				else:
 
-				# NMEA requires a checksum on all the characters between the $ and the *
-				# you can use the BluefinMessages.checksum() function to calculate
-				# and write it like below. The checksum goes after the *
-				msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-				self.send_message(msg)
+					# Z - We need to add decide command and save outputs
+					delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, red, green)
 
-				engine_started = True
+					### turn your output message into a BPRMB request!
 
-			else:
+					# Z - We need to save our output message
+					self.__current_time = datetime.datetime.utcnow().timestamp()
+					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+					cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
+					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+					self.send_message(msg)
 
-				# Z - We need to add decide command and save outputs
-				delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, red, green)
+				time.sleep(1 / self.__warp)
 
-				### turn your output message into a BPRMB request!
-
-				# Z - We need to save our output message
-				self.__current_time = datetime.datetime.utcnow().timestamp()
-				hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-				cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
-				msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-				self.send_message(msg)
-
-			time.sleep(1 / self.__warp)
-
-		#except:
-
-		#	self.__client.cleanup()
-		#	client.join()
+        except:
+            self.__client.cleanup()
+            client.join()
 
 
 	def process_message (self, msg):
@@ -209,10 +220,14 @@ class BackSeat ():
 
 			print(f"Cannot process this message type: {fields[0]}")
 
-	def send_message (self, msg):
 
-		print(f"sending message {msg}...")
-		self.__client.send_message(msg)
+
+    def send_message(self, msg):
+        with open(self.__log_file, 'a') as f:
+            f.write(f"{self.__current_time}, Sending: {msg}\n")
+
+        print(f"sending message {msg}...")
+        self.__client.send_message(msg)
 
 	def send_status (self):
 
@@ -222,93 +237,86 @@ class BackSeat ():
 		msg = BluefinMessages.BPSTS(hhmmss, 1, 'BWSI Autonomy OK')
 		self.send_message(msg)
 
-	def get_mail (self):
 
-		msgs = self.__client.receive_mail()
-		return msgs
+    def get_mail(self):
+        msgs = self.__client.receive_mail()
+        return msgs
 
-	def receive_nmea_time (self, hhmmss):
+    def receive_nmea_time(self, hhmmss):
+        tm = datetime.datetime.utcnow()
+        nvg_time = datetime.datetime(tm.year,
+                                     tm.month,
+                                     tm.day,
+                                     int(hhmmss[0:2]),
+                                     int(hhmmss[2:4]),
+                                     int(hhmmss[4:6]),
+                                     0)
 
-		tm = datetime.datetime.utcnow()
-		nvg_time = datetime.datetime(tm.year,
-									 tm.month,
-									 tm.day,
-									 int(hhmmss[0:2]),
-									 int(hhmmss[2:4]),
-									 int(hhmmss[4:6]),
-									 0)
+        return nvg_time
 
-		return nvg_time
+    def receive_nmea_latlon(self, latdeg, lathemi, londeg, lonhemi):
+        latitude = int(latdeg[0:2]) + float(latdeg[2:]) / 60
+        if lathemi == 'S':
+            latitude = -latitude
 
-	def receive_nmea_latlon (self, latdeg, lathemi, londeg, lonhemi):
+        longitude = int(londeg[0:3]) + float(londeg[3:]) / 60
+        if lonhemi == 'W':
+            longitude = -longitude
 
-		latitude = int(latdeg[0:2]) + float(latdeg[2:]) / 60
+        return (latitude, longitude)
 
-		if lathemi == 'S':
+    def __get_local_position(self):
+        # check that datum is in the same UTM zone, if not, shift datum
+        local_pos = utm.from_latlon(self.__auv_state['latlon'][0],
+                                    self.__auv_state['latlon'][1],
+                                    force_zone_number=self.__datum_position[2],
+                                    force_zone_letter=self.__datum_position[3])
 
-			latitude = -latitude
+        return (local_pos[0]-self.__datum_position[0], local_pos[1]-self.__datum_position[1])
 
-		longitude = int(londeg[0:3]) + float(londeg[3:]) / 60
+def __log_error (self, error_msg):
 
-		if lonhemi == 'W':
+	log_file_write = open(self.__log_file_name, "w", encoding = 'UTF8', newline = '')
+	writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
+	writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
+					 'Position' : None,
+					 'Current Heading (deg)' : None,
+					 'Desired Heading (deg)' : None,
+					 'Green Bouys' : None,
+					 'Red Bouys' : None,
+					 'Error' : error_msg})
 
-			longitude = -longitude
+	self.__current_time = time.time()
+	hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+	msg = BluefinMessages.BPABT(hhmmss, error_msg)
+	self.send_message(msg)
 
-		return (latitude, longitude)
 
-	def __get_local_position (self):
 
-		# check that datum is in the same UTM zone, if not, shift datum
-		local_pos = utm.from_latlon(self.__auv_state['latlon'][0],
-									self.__auv_state['latlon'][1],
-									force_zone_number = self.__datum_position[2],
-									force_zone_letter = self.__datum_position[3])
-
-		return (local_pos[0] - self.__datum_position[0], local_pos[1] - self.__datum_position[1])
-
-	def __log_error (self, error_msg):
-
-		log_file_write = open(self.__log_file_name, "w", encoding = 'UTF8', newline = '')
-		writer = csv.DictWriter(log_file_write, fieldnames = ['Timestamp (UTC)', 'Position', 'Current Heading (deg)', 'Desired Heading (deg)', 'Green Bouys', 'Red Bouys', 'Error'])
-		writer.writerow({'Timestamp (UTC)' : datetime.datetime.utcnow(),
-						 'Position' : None,
-						 'Current Heading (deg)' : None,
-						 'Desired Heading (deg)' : None,
-						 'Green Bouys' : None,
-						 'Red Bouys' : None,
-						 'Error' : error_msg})
-
-		self.__current_time = time.time()
-		hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-		msg = BluefinMessages.BPABT(hhmmss, error_msg)
-		self.send_message(msg)
 
 def main():
-
-	# Z - Create logging file
-	# Z - Write headers to logging file
 	writer.writeheader()
 
-	if len(sys.argv) > 1:
+    if len(sys.argv) > 1:
 
-		host = sys.argv[1]
+        host = sys.argv[1]
+    else:
+
+        host = "localhost"
+
+    if len(sys.argv) > 2:
+
+        port = int(sys.argv[2])
 
 	else:
 
-		host = "localhost"
-
-	if len(sys.argv) > 2:
-
-		port = int(sys.argv[2])
-
-	else:
-
+	    #port = 29500
 		port = 8042
 
-	print(f"host = {host}, port = {port}")
-	backseat = BackSeat(host = host, port = port, log_file_name = log_file_name_initial)
-	backseat.run()
+    print(f"host = {host}, port = {port}")
+    backseat = BackSeat(host = host, port = port, log_file_name = log_file_name_initial)
+    backseat.run()
 
 
 if __name__ == '__main__':
-	main()
+    main()
