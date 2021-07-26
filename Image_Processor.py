@@ -8,44 +8,85 @@ Created on Thu Jul 22 11:30:37 2021
 ### JRE: for simulation only!
 
 import sys
+import time
 import pathlib
 import datetime
 
 import cv2
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 # For simulations
 from BWSI_BuoyField import BuoyField
 from BWSI_Sensor import BWSI_Camera
+#from picamera import PiCamera
 
 
 class ImageProcessor():
-	def __init__(self, camera='PICAM', log_dir='./'):
+
+	def __init__(self, camera = 'PICAM', log_dir = './'):
+
 		self.__camera_type = camera.upper()
 
 		if self.__camera_type == 'SIM':
-			self.__camera = BWSI_Camera(max_angle=31.1, visibility=30)
+
+			self.__camera = BWSI_Camera(max_angle = 31.1, visibility = 30)
 			self.__simField = None
 
 		else:
+
+			self.__camera = PiCamera()
+			self.__camera.start_preview()
+
+			time.sleep(2)
+
 			pass
 
 		# create my save directory
 		self.__image_dir = pathlib.Path(log_dir, 'frames')
-		self.__image_dir.mkdir(parents=True, exist_ok=True)
+		self.__image_dir.mkdir(parents = True, exist_ok = True)
 
+	def sensor_position (self, pix_x, pix_y, res_x, res_y):
+
+		x = pix_x - (0.5 * res_x)
+		y = (0.5 * res_y) - pix_y
+
+		x_prop = (3.68 / 1000) / res_x
+		y_prop = (2.76 / 1000) / res_y
+
+		sensor_pos_x = x * x_prop
+		sensor_pos_y = (y * y_prop)
+
+		return (sensor_pos_x, sensor_pos_y)
+
+	def get_angles (self, x, y):
+
+		f = (3.04 / 1000)
+
+		hor_ang = np.degrees(np.arctan(x / f))
+		vert_ang = np.degrees(np.arctan(y / f))
+
+		return hor_ang, vert_ang
 
 	# ------------------------------------------------------------------------ #
 	# Run an iteration of the image processor.
 	# The sim version needs the auv state ot generate simulated imagery
 	# the PICAM does not need any auv_state input
 	# ------------------------------------------------------------------------ #
-	def run(self, auv_state=None):
+	def run(self, auv_state = None):
+
 		red = None
 		green = None
+
 		if auv_state['heading'] is not None:
+
 			if (self.__camera_type == 'SIM'):
+
 				if self.__simField is None:
+
 					self.__simField = BuoyField(auv_state['datum'])
+
 					config = {'nGates': 50,
 							  'gate_spacing': 20,
 							  'gate_width': 2,
@@ -57,17 +98,112 @@ class ImageProcessor():
 
 				image = self.__camera.get_frame(auv_state['position'], auv_state['heading'], self.__simField)
 
+				# log the image
+				fn = f"{self.__image_dir}/{int(datetime.datetime.utcnow().timestamp())}.jpg"
+				cv2.imwrite(str(fn), image)
+
 			elif self.__camera_type == 'PICAM':
+
+				fn = f"{self.__image_dir}/{int(datetime.datetime.utcnow().timestamp())}.jpg"
+				self.__camera.capture(fn)
+
 				pass
 
 			else:
+
 				print(f"Unknown camera type: {self.__camera_type}")
 				sys.exit(-10)
 
-			# log the image
-			fn = self.__image_dir / f"frame_{int(datetime.datetime.utcnow().timestamp())}.jpg"
-			cv2.imwrite(str(fn), image)
+			img = cv2.imread(fn)
+			img = cv2.resize(img, (640, 480))
+			img_brg_filtered = cv2.boxFilter(img, -1, (10,10))
 
-			# process and find the buoys!
+			img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 230, img_brg_filtered[:, :, 0] <= 255))
+			img_threshold_green = np.logical_not(np.logical_and(img_brg_filtered[:, :, 1] >= 220, img_brg_filtered[:, :, 1] <= 255))
+			img_threshold_red = np.logical_not(np.logical_and(img_brg_filtered[:, :, 2] >= 175, img_brg_filtered[:, :, 1] <= 255))
+
+			img_red_buoys = np.logical_and(img_threshold_green, img_threshold_blue)
+			img_green_buoys = np.logical_and(img_threshold_red, img_threshold_blue)
+
+			#fig, ax = plt.subplots(3, 3)
+
+			#ax[0, 0].imshow(img[:, :, 0], cmap = "Blues")
+			#ax[0, 0].title.set_text("Blue")
+			#ax[0, 1].imshow(img[:, :, 1], cmap = "Greens")
+			#ax[0, 1].title.set_text("Green")
+			#ax[0, 2].imshow(img[:, :, 2], cmap = "Reds")
+			#ax[0, 2].title.set_text("Red")
+
+			#ax[1, 0].imshow(img_brg_filtered[:, :, 0], cmap = "Blues")
+			#ax[1, 0].title.set_text("Blue")
+			#ax[1, 1].imshow(img_brg_filtered[:, :, 1], cmap = "Greens")
+			#ax[1, 1].title.set_text("Green")
+			#ax[1, 2].imshow(img_brg_filtered[:, :, 2], cmap = "Reds")
+			#ax[1, 2].title.set_text("Red")
+
+			#ax[2, 0].imshow(img_threshold_blue, cmap = "Blues")
+			#ax[2, 0].title.set_text("Blue")
+			#ax[2, 1].imshow(img_threshold_green, cmap = "Greens")
+			#ax[2, 1].title.set_text("Green")
+			#ax[2, 2].imshow(img_threshold_red, cmap = "Reds")
+			#ax[2, 2].title.set_text("Red")
+
+			#plt.show()
+
+			img_points_red = cv2.boxFilter(img_red_buoys.astype(int), -1, (50, 50), normalize = False)
+			img_points_red_value_scaled = (img_points_red * (255 / np.max(img_points_red))).astype(np.uint8)
+
+			img_points_green = cv2.boxFilter(img_green_buoys.astype(int), -1, (50, 50), normalize = False)
+			img_points_green_value_scaled = (img_points_green * (255 / np.max(img_points_green))).astype(np.uint8)
+
+			thresh_red, img_out_red = cv2.threshold(img_points_red_value_scaled, 217, 255, cv2.THRESH_BINARY)
+			thresh_green, img_out_green = cv2.threshold(img_points_green_value_scaled, 217, 255, cv2.THRESH_BINARY)
+
+			contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+			contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+			contour_dims_red = []
+			contour_centers_red = []
+			contour_distances_red = []
+
+			contour_dims_green = []
+			contour_centers_green = []
+			contour_distances_green = []
+
+			for contour in contours_red:
+
+				print(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]))
+
+				x, y = self.sensor_position(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]), np.max([item[0][1] for item in contour]) - np.min([item[0][1] for item in contour]), img.shape[1], img.shape[0])
+				contour_dims_red.append((x, y))
+
+				img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
+				contour_centers_red.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))))
+
+				contour_distances_red.append((0.25 * 0.00304) / x)
+
+			for contour in contours_green:
+
+				x, y = self.sensor_position(np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]), np.max([item[0][1] for item in contour]) - np.min([item[0][1] for item in contour]), img.shape[1], img.shape[0])
+				contour_dims_green.append((x, y))
+
+				img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
+				contour_centers_green.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))))
+
+				hori, vert = self.get_angles(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])))
+
+				contour_distances_green.append((0.25 * 0.00304) / x)
+
+			print(f"Red dims: {contour_dims_red}")
+			print(f"Green dims: {contour_dims_green}")
+			print(f"Red centers: {contour_centers_red}")
+			print(f"Green centers: {contour_centers_green}")
+			print(f"Red distances: {contour_distances_red}")
+			print(f"Green distances: {contour_distances_green}")
+
+			img = np.flip(img, axis = 2)
+
+			plt.imshow(img)
+			plt.show()
 
 		return red, green

@@ -43,7 +43,7 @@ class FrontSeat():
         self.__warp = warp
 
         self.__position_history = list()
-        self.__doPlots = True
+        self.__doPlots = False
 
         # has heard from the backseat
         self.__isConnected = False

@@ -8,7 +8,6 @@ This is the simulated Sandshark front seat
 
 @author: BWSI AUV Challenge Instructional Staff
 """
-#Wow I own a branch
 
 import time
 import threading
