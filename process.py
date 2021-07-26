@@ -9,13 +9,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-img = cv2.imread(fn)
+img = cv2.imread("./frames/frame_1627339113.jpg")
 img = cv2.resize(img, (640, 480))
 img_brg_filtered = cv2.boxFilter(img, -1, (10,10))
 
-img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 230, img_brg_filtered[:, :, 0] <= 255))
-img_threshold_green = np.logical_not(np.logical_and(img_brg_filtered[:, :, 1] >= 220, img_brg_filtered[:, :, 1] <= 255))
-img_threshold_red = np.logical_not(np.logical_and(img_brg_filtered[:, :, 2] >= 175, img_brg_filtered[:, :, 1] <= 255))
+img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 210, img_brg_filtered[:, :, 0] <= 255))
+img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 140, img_brg_filtered[:, :, 1] <= 255)
+img_threshold_red = np.logical_and(img_brg_filtered[:, :, 2] >= 20, img_brg_filtered[:, :, 1] <= 140)
 
 img_red_buoys = np.logical_and(img_threshold_green, img_threshold_blue)
 img_green_buoys = np.logical_and(img_threshold_red, img_threshold_blue)
