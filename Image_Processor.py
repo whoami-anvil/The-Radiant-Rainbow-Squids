@@ -184,9 +184,7 @@ class ImageProcessor():
 
 				img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
 				center_x, center_y = self.sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
-				contour_centers_red.append((x, y))
-
-				hori, vert = self.get_angles(x, y)
+				contour_centers_red.append((center_x, center_y))
 
 				contour_distances_red.append(-1 * (((3.04 * 250 * img.shape[1]) / (np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]) * 3.68)) / 1000))
 
@@ -198,8 +196,6 @@ class ImageProcessor():
 				img = cv2.circle(img, (int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))), 5, (0, 0, 255), -1)
 				center_x, center_y = self.sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
 				contour_centers_green.append((x, y))
-
-				hori, vert = self.get_angles(center_x, center_y)
 
 				contour_distances_green.append(-1 * (((3.04 * 250 * img.shape[1]) / (np.max([item[0][0] for item in contour]) - np.min([item[0][0] for item in contour]) * 3.68)) / 1000))
 
