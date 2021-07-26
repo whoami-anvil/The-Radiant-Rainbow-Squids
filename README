@@ -1,5 +1,8 @@
+# The Radiant Rainbow Squids
+
 This code package contains a simulated Bluefin Sandshark with front seat processor, and a backseat processor. The front seat and back seat can be run on different machines within the same network.
 
+# How to use
 Start front seat first!
 
 To start front seat:
