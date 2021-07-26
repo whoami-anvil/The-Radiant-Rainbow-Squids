@@ -166,15 +166,32 @@ class AUVController ():
 
 		# with delta angle, match anything above zero to thirty degrees / 1.5 knots - anything above proportionally
 		# scales to 2 knots
-		if np.abs(delta_angle) > 10:
+		"""
+		1000RPM/1 knot
+		Max Angle: 25
+		Max speed: 1000 RPM / 2 knots
+		Min Angle: 0
+		Min Speed: 750 RPM / 1.25 knots
+		RPM Range 250 rpm
+		Knot Range 0.75 knots
+		"""
+		# editing rudder speed
+		if delta_angle > 0:
+			rpm_speed = 750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))
 
-			turn_angle = 15
-			rpm_speed = 1000
-
+		elif delta_angle < 0:
+			rpm_speed = 750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))
 		else:
-
-			turn_angle = 5
 			rpm_speed = 750
+		# if np.abs(delta_angle) > 10:
+		#
+		# 	turn_angle = 15
+		# 	rpm_speed = 1000
+		#
+		# else:
+		#
+		# 	turn_angle = 5
+		# 	rpm_speed = 750
 
 		# which way do we have to turn
 		if delta_angle > 2: # need to turn to right!
