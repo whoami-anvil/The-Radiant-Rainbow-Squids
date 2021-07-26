@@ -1,0 +1,35 @@
+1627340292.172213, Sending: $BPLOG,ACK,ON*1e
+
+1627340292.172213, Sending: $BPLOG,ALL,ON*16
+
+1627340292.173807, Sending: $BPSTS,185812.17,1,BWSI Autonomy OK*45
+
+1627340293.17791, Sending: $BPSTS,185813.17,1,BWSI Autonomy OK*44
+
+1627340294.1804154, Processing: $BFNVG,185811.84,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185811.84*62
+Interpreted as: {'position': (0, 0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 11), 'datum': (42.3, -71.1)}
+1627340295.672149, Sending: $BPRMB,185815.67,,,,750,0,1*7f
+1627340296.672491, Sending: $BPSTS,185816.67,1,BWSI Autonomy OK*46
+
+1627340297.672806, Processing: $BFNVG,185812.61,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185812.61*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 12), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185812.86,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185812.86*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 12), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185813.37,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185813.37*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 13), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185813.62,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185813.62*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 13), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185813.88,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185813.88*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 13), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185814.13,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185814.13*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 14), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185814.39,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185814.39*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 14), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185814.64,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185814.64*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 14), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185814.89,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185814.89*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 14), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185815.15,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185815.15*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 15), 'datum': (42.3, -71.1)}
+1627340297.672806, Processing: $BFNVG,185815.40,4218.000000,N,07106.000000,W,0,10.0,1.0,45.0,0.0,0.0,185815.40*62
+Interpreted as: {'position': (0.0, 0.0), 'latlon': (42.3, -71.1), 'heading': 45.0, 'depth': 1.0, 'altitude': 10.0, 'roll': 0.0, 'pitch': 0.0, 'last_fix_time': datetime.datetime(2021, 7, 26, 18, 58, 15), 'datum': (42.3, -71.1)}
