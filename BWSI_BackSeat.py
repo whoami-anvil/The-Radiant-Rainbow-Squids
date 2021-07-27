@@ -88,7 +88,7 @@ class BackSeat ():
 			while True:
 
 				now = datetime.datetime.utcnow().timestamp()
-				delta_time = (now-self.__current_time) * self.__warp
+				delta_time = (now - self.__current_time) * self.__warp
 
 				self.send_status()
 
@@ -142,7 +142,7 @@ class BackSeat ():
 				elif (self.__current_time - self.__start_time) > 3:
 
 					# Z - We need to add decide command and save outputs
-					delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, red, green)
+					delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, red, green, sensor_type = 'ANGLE')
 
 					### turn your output message into a BPRMB request!
 

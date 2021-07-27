@@ -73,6 +73,8 @@ class FrontSeat():
 				green_buoys = np.asarray(G)
 				red_buoys = np.asarray(R)
 
+				print(f"Green Buoys: {G}\nRed Buoys: {R}")
+
 
 			count = 0
 			while True:
