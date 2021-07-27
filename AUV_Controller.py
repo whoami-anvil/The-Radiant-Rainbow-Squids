@@ -180,6 +180,7 @@ class AUVController ():
 		RPM Range 250 rpm
 		Knot Range 0.75 knots
 		"""
+
 		# editing rudder speed
 		if delta_angle > 0:
 			rpm_speed = 750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))
