@@ -70,7 +70,7 @@ class AUVController ():
 			red_buoys_translated = None
 
 		# determine what heading we want to go
-
+		
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
 
 		if (red_buoys_translated == None or green_buoys_translated == None):
