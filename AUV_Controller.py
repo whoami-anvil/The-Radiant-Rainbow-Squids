@@ -70,7 +70,7 @@ class AUVController ():
 			red_buoys_translated = None
 
 		# determine what heading we want to go
-		
+
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
 
 		if (red_buoys_translated == None or green_buoys_translated == None):
@@ -157,11 +157,11 @@ class AUVController ():
 			print(gnext[0])
 			relative_angle = (gnext[0] + rnext[0]) / 2.0
 
-   				if ((self.__heading + relative_angle) < 360):
-					tgt_hdg = self.__heading + relative_angle
+		if ((self.__heading + relative_angle) < 360):
+			tgt_hdg = self.__heading + relative_angle
 
-   				elif ((self.__heading + relative_angle) >= 360):
-   					tgt_hdg = relative_angle - (360 - self.__heading)
+		elif ((self.__heading + relative_angle) >= 360):
+			tgt_hdg = relative_angle - (360 - self.__heading)
 
 		elif len(gnext)>0:
 
