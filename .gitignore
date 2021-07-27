@@ -9,3 +9,4 @@ Mission\ Reconstruction\ and\ Analysis\ Programs/
 mission_logs/
 frames/
 *.csv
+*.log

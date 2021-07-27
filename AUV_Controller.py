@@ -8,32 +8,34 @@ Created on Wed Jul  7 12:05:08 2021
 import sys
 import numpy as np
 
-class AUVController():
-    def __init__(self):
+class AUVController ():
 
-        # initialize state information
-        self.__heading = None
-        self.__speed = 750
-        self.__rudder = 0.0
+	def __init__ (self):
+
+		# initialize state information
+		self.__heading = None
+		self.__speed = None
+		self.__rudder = None
 		self.__rudder_prev = 0.0
-        self.__position = None
+		self.__position = None
 		self.__speed_knots = None
 		self.__speed_mps = None
 
-        # assume we want to be going the direction we're going for now
-        self.__desired_heading = None
+		# assume we want to be going the direction we're going for now
+		self.__desired_heading = None
 		self.__time_list = []
 
-    def initialize(self, auv_state):
-        self.__heading = auv_state['heading']
-        self.__position = auv_state['position']
+	def initialize (self, auv_state):
 
-        # assume we want to be going the direction we're going for now
-        self.__desired_heading = auv_state['heading']
+		self.__heading = auv_state['heading']
+		self.__position = auv_state['position']
+		self.__speed_knots = self.__speed / 250
+		self.__speed_mps = self.__speed_knots * (1852 / 3600)
 
-		self.__time_list = []
+		# assume we want to be going the direction we're going for now
+		self.__desired_heading = auv_state['heading']
 
-    ### Public member functions
+	### Public member functions
 	def update_state (self, auv_state):
 
 		self.__heading = auv_state['heading']
@@ -42,73 +44,111 @@ class AUVController():
 		#used for keeping track of times in AUV
 		self.__time_list.append(auv_state['last_fix_time'])
 
-    def decide(self, auv_state, green_buoys, red_buoys, sensor_type='POSITION'):
+	def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
 
-        		#decide rudder angles
-				#figure out how to get it to move there based on its last rudder angle
-				# update state information
-				self.__heading = auv_state['heading']
-				self.__position = auv_state['position']
+		#decide rudder angles
+		#figure out how to get it to move there based on its last rudder angle
+		# update state information
+		self.__heading = auv_state['heading']
+		self.__position = auv_state['position']
 
-				# determine what heading we want to go
+		# determine what heading we want to go
 
-				print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
-				if (red_buoys == None or green_buoys == None):
+		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
 
-					return (self.__rudder_prev * -1), 750
+		if (red_buoys == None or green_buoys == None):
 
-				elif sensor_type.upper() == 'POSITION': # known positions of buoys
+			return (self.__rudder_prev * -1), 750
 
-					print("Have seen bouys")
+		elif sensor_type.upper() == 'POSITION': # known positions of buoys
 
-					self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
+			print("Have seen buoys by position")
 
-				elif sensor_type.upper() == 'ANGLE': # camera sensor
+			self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
 
-					print("Have seen bouys")
+		elif sensor_type.upper() == 'ANGLE': # camera sensor
 
-					self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
+			print("Have seen buoys by angle")
 
-				# determine whether and what command to issue to desired heading
-				delta_rudder, new_engine_speed = self.__select_command()
+			self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
-				self.__rudder_prev += delta_rudder
+		# determine whether and what command to issue to desired heading
+		delta_rudder, new_engine_speed = self.__select_command()
 
-				self.__speed = new_engine_speed
-				self.__speed_knots = self.__speed / 250
-				self.__speed_mps = self.__speed_knots * (1852 / 3600)
+		self.__rudder_prev += delta_rudder
 
-				return delta_rudder, new_engine_speed
+		self.__speed = new_engine_speed
+		self.__speed_knots = self.__speed / 250
+		self.__speed_mps = self.__speed_knots * (1852 / 3600)
 
-    # return the desired heading to a public requestor
-    def get_desired_heading(self):
-        return self.__desired_heading
+		return delta_rudder, new_engine_speed
+
+	# return the desired heading to a public requestor
+	def get_desired_heading (self):
+
+		return self.__desired_heading
+
+	### Private member functions
+
+	# calculate the heading we want to go to reach the gate center
+	def __heading_to_position (self, gnext=None, rnext=None):
+
+		# center of the next buoy pair
+		tgt_hdg = self.__heading
+
+		if not(gnext == None and rnext == None):
+			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
+			tgt_hdg = np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])
+			print(f"target heading no mod: {tgt_hdg}"")
+			tgt_hdg = np.mod(tgt_hdg) + 360,360)
+			print(f"target heading with mod: {tgt_hdg}"")
+		elif not(gnext None) and (rnext == None):
+			#if only one gate, set gate "center" to buoy location for temporary redirection
+			gate_center = (gnext[0], gnext[1])
+			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])) + 360,360)
+		elif not(rnext == None) and (gnext == None):
+			gate_center = (rnext[0], rnext[1])
+			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])) + 360,360)
+		# else, do nothing and go straight
+		# heading to gate_center
 
 
-    ### Private member functions
+		return tgt_hdg
 
-    # calculate the heading we want to go to reach the gate center
-    def __heading_to_position(self, gnext, rnext):
-        # center of the next buoy pair
-        gate_center = ((gnext[0]+rnext[0])/2.0, (gnext[1]+rnext[1])/2.0)
+	def __heading_to_angle(self, gnext=None, rnext=None):
+		#relative angle to the center of the next buoy pair
+		if(rnext == []) and (gnext == []):
+			tgt_hdg = np.mod(self.__heading + 360, 360)
 
-        # heading to gate_center
-        tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0]-self.__position[0],
-                                               gate_center[1]-self.__position[1]))+360,360)
+		elif rnext != [] and gnext != []:
 
-        return tgt_hdg
+			print(rnext[0])
 
-    def __heading_to_angle(self, gnext, rnext):
-        # relative angle to the center of the next buoy pair
-        relative_angle = (gnext[0] + rnext[0]) / 2.0
+			print(gnext[0])
+   			relative_angle = (gnext[0] + rnext[0]) / 2.0
 
-        # heading to center of the next buoy pair
-        tgt_hdg = self.__heading + relative_angle
+   				if ((self.__heading + relative_angle) < 360):
+					tgt_hdg = self.__heading + relative_angle
 
-        return tgt_hdg
+   				elif ((self.__heading + relative_angle) >= 360):
+   					tgt_hdg = relative_angle - (360 - self.__heading)
 
-    # choose a command to send to the front seat
-    def __select_command(self):
+		elif len(gnext)>0:
+
+			tgt_hdg = self.__heading + gnext[0]
+
+		elif len(rnext)>0:
+
+			tgt_hdg = self.__heading + rnext[0]
+
+
+		return tgt_hdg
+
+	# choose a command to send to the front seat
+	def __select_command(self):
 
 		# Unless we need to issue a command, we will return None
 		turn_angle = None #for rudder
@@ -127,15 +167,32 @@ class AUVController():
 
 		# with delta angle, match anything above zero to thirty degrees / 1.5 knots - anything above proportionally
 		# scales to 2 knots
-		if np.abs(delta_angle) > 10:
+		"""
+		1000RPM/1 knot
+		Max Angle: 25
+		Max speed: 1000 RPM / 2 knots
+		Min Angle: 0
+		Min Speed: 750 RPM / 1.25 knots
+		RPM Range 250 rpm
+		Knot Range 0.75 knots
+		"""
+		# editing rudder speed
+		if delta_angle > 0:
+			rpm_speed = 750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))
 
-			turn_angle = 15
-			rpm_speed = 1000
-
+		elif delta_angle < 0:
+			rpm_speed = 750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))
 		else:
-
-			turn_angle = 5
 			rpm_speed = 750
+		if np.abs(delta_angle) > 10:
+		#
+			turn_angle = 15
+		 	rpm_speed = 1000
+		#
+		else:
+		#
+		 	turn_angle = 5
+		 	rpm_speed = 750
 
 		# which way do we have to turn
 		if delta_angle > 2: # need to turn to right!
