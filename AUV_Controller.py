@@ -108,8 +108,11 @@ class AUVController ():
 	### Private member functions
 
 	# calculate the heading we want to go to reach the gate center
-	def __heading_to_position (self, gnext, rnext):
-
+	def __heading_to_position (self, gnext=None, rnext=None):
+		"""
+		used to set desired_heading
+		target heading becomes self.__desired_heading
+		"""
 		# center of the next buoy pair
 		tgt_hdg = self.__heading
 
@@ -142,7 +145,7 @@ class AUVController ():
 
 		return tgt_hdg
 
-	def __heading_to_angle(self, gnext, rnext):
+	def __heading_to_angle(self, gnext=None, rnext=None):
 		#relative angle to the center of the next buoy pair
 		if(rnext == []) and (gnext == []):
 			tgt_hdg = np.mod(self.__heading + 360, 360)
@@ -154,12 +157,11 @@ class AUVController ():
 			print(gnext[0])
 			relative_angle = (gnext[0] + rnext[0]) / 2.0
 
-   # if ((self.__heading + relative_angle) < 360):
-			tgt_hdg = self.__heading + relative_angle
+   				if ((self.__heading + relative_angle) < 360):
+					tgt_hdg = self.__heading + relative_angle
 
-   # elif ((self.__heading + relative_angle) >= 360):
-
-   # tgt_hdg = relative_angle - (360 - self.__heading)
+   				elif ((self.__heading + relative_angle) >= 360):
+   					tgt_hdg = relative_angle - (360 - self.__heading)
 
 		elif len(gnext)>0:
 
@@ -201,6 +203,7 @@ class AUVController ():
 		RPM Range 250 rpm
 		Knot Range 0.75 knots
 		"""
+
 		# editing rudder speed
 		if delta_angle > 0:
 
