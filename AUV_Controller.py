@@ -97,7 +97,8 @@ class AUVController ():
 		tgt_hdg = self.__heading
 
 		if not(gnext == None and rnext == None):
-			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
+			#if there are both green and red buoys present
+			gate_center = ((gnext[-2] + rnext[-2]) / 2.0, (gnext[-1] + rnext[-1]) / 2.0)
 			tgt_hdg = np.degrees(np.arctan2(gate_center[0] - self.__position[0],
 												   gate_center[1] - self.__position[1])
 			print(f"target heading no mod: {tgt_hdg}"")
