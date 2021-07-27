@@ -211,7 +211,7 @@ class ImageProcessor():
 				center_x, center_y = self.sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
 				contour_centers_green.append((center_x, center_y))
 
-			if len(contour_distances_red) > 0: # checks if we have at least 1 contour detected
+			if len(contour_dims_red) > 0: # checks if we have at least 1 contour detected
 
 				# for each contour finds the index of the smallest contour
 				red_index = contour_dims_red.index(min([item[0] for item in contour_dims_red]))
@@ -222,7 +222,7 @@ class ImageProcessor():
 				red_angle_x, red_angle_y = self.get_angles(red_center_m_x, red_center_m_y)
 				red = red_angle_x
 
-			if len(contour_distances_green) > 0:
+			if len(contour_dims_green) > 0:
 
 				green_index = contour_dims_green.index(min([item[0] for item in contour_dims_green]))
 				green_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_green[green_index][0])
