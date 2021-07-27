@@ -214,7 +214,7 @@ class ImageProcessor():
 			if len(contour_dims_red) > 0: # checks if we have at least 1 contour detected
 
 				# for each contour finds the index of the smallest contour
-				red_index = contour_dims_red.index(min([item[0] for item in contour_dims_red]))
+				red_index = [item[0] for item in contour_dims_red].index(min([item[0] for item in contour_dims_red]))
 
 				# finds angle to the buoys
 				red_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_red[red_index][0])
@@ -224,7 +224,7 @@ class ImageProcessor():
 
 			if len(contour_dims_green) > 0:
 
-				green_index = contour_dims_green.index(min([item[0] for item in contour_dims_green]))
+				green_index = [item[0] for item in contour_dims_green].index(min([item[0] for item in contour_dims_green]))
 				green_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_green[green_index][0])
 				green_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_green[green_index][1])
 				green_angle_x, green_angle_y = self.get_angles(green_center_m_x, green_center_m_y)

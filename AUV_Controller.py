@@ -57,11 +57,13 @@ class AUVController ():
 
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
 
-		if (red_buoys_translated == None or green_buoys_translated == None):
+		if (red_buoys == None or green_buoys == None):
 
 			return 0, 750
 
 		elif sensor_type.upper() == 'POSITION': # known positions of buoys
+
+			### DEPRETIATED ###
 
 			print("Have seen buoys by position")
 
