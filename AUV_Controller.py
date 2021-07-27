@@ -156,6 +156,7 @@ class AUVController ():
 
 			print(gnext[0])
 			relative_angle = (gnext[0] + rnext[0]) / 2.0
+			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
 
 		# if ((self.__heading + relative_angle) < 360):
 		# 	tgt_hdg = self.__heading + relative_angle
