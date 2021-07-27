@@ -62,13 +62,13 @@ class AUVController ():
 
 		elif sensor_type.upper() == 'POSITION': # known positions of buoys
 
-			print("Have seen bouys")
+			print("Have seen buoys by position")
 
 			self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
 
 		elif sensor_type.upper() == 'ANGLE': # camera sensor
 
-			print("Have seen bouys")
+			print("Have seen buoys by angle")
 
 			self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
@@ -96,17 +96,19 @@ class AUVController ():
 		# center of the next buoy pair
 		tgt_hdg = self.__heading
 
-		if gnext and rnext:
+		if not(gnext == None and rnext == None):
 			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
-			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
-												   gate_center[1] - self.__position[1])) + 360,360)
-
-		elif gnext and not rnext:
+			tgt_hdg = np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+												   gate_center[1] - self.__position[1])
+			print(f"target heading no mod: {tgt_hdg}"")
+			tgt_hdg = np.mod(tgt_hdg) + 360,360)
+			print(f"target heading with mod: {tgt_hdg}"")
+		elif not(gnext None) and (rnext == None):
 			#if only one gate, set gate "center" to buoy location for temporary redirection
 			gate_center = (gnext[0], gnext[1])
 			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
 												   gate_center[1] - self.__position[1])) + 360,360)
-		elif rnext and not gnext:
+		elif not(rnext == None) and (gnext == None):
 			gate_center = (rnext[0], rnext[1])
 			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
 												   gate_center[1] - self.__position[1])) + 360,360)
@@ -128,12 +130,11 @@ class AUVController ():
 			print(gnext[0])
    			relative_angle = (gnext[0] + rnext[0]) / 2.0
 
-   # if ((self.__heading + relative_angle) < 360):
-			tgt_hdg = self.__heading + relative_angle
+   				if ((self.__heading + relative_angle) < 360):
+					tgt_hdg = self.__heading + relative_angle
 
-   # elif ((self.__heading + relative_angle) >= 360):
-
-   # tgt_hdg = relative_angle - (360 - self.__heading)
+   				elif ((self.__heading + relative_angle) >= 360):
+   					tgt_hdg = relative_angle - (360 - self.__heading)
 
 		elif len(gnext)>0:
 
