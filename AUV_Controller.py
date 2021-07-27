@@ -35,7 +35,7 @@ class AUVController ():
 		"""
 		self.__heading = auv_state['heading']
 		self.__position = auv_state['position']
-		self.__speed_knots = self.__speed / 250
+		self.__speed_knots = self.__speed / 500
 		self.__speed_mps = self.__speed_knots * (1852 / 3600)
 
 		# assume we want to be going the direction we're going for now
@@ -64,8 +64,6 @@ class AUVController ():
 		self.__position = auv_state['position']
 
 		# determine what heading we want to go
-
-		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
 
 		if (red_buoys == None or green_buoys == None):
 
@@ -153,22 +151,24 @@ class AUVController ():
 
 		return tgt_hdg
 
-	def __heading_to_angle(self, gnext=None, rnext=None):
+	def __heading_to_angle(self, gnext = None, rnext = None):
+
 		"""
 		return desired heading based on angle relative to the AUV
 		"""
+
 		#relative angle to the center of the next buoy pair
-		if(rnext == None) and (gnext == None):
+		if (rnext == None) and (gnext == None):
+
 			tgt_hdg = np.mod(self.__heading + 360, 360)
 
 		elif (rnext != None) and (gnext != None):
 
-			print(rnext)
-
-			print(gnext)
 			relative_angle = (gnext + rnext) / 2.0
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
+
 		elif (rnext != None) and (gnext == None):
+
 			#set tgt_hdg to heading of rnext
 			relative_angle = rnext
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
@@ -193,6 +193,7 @@ class AUVController ():
 
 	# choose a command to send to the front seat
 	def __select_command(self):
+
 		"""
 		return the rudder turn angle and rpm speed based on difference in heading
 		"""
@@ -201,7 +202,8 @@ class AUVController ():
 		rpm_speed = 750 #for RPM, 500RPM/knot, up to 5 knots
 
 		# determine the angle between current and desired heading
-		delta_angle = self.__desired_heading - self.__heading
+		delta_angle = self.__heading - self.__desired_heading
+		print(f"Delta Angle: {delta_angle}")
 
 		if delta_angle > 180: # angle too big, go the other way!
 
@@ -226,42 +228,36 @@ class AUVController ():
 		# editing rudder speed
 		if delta_angle > 0:
 
-			rpm_speed = 750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))
+			rpm_speed = int(np.round((750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))), 0))
 
 		elif delta_angle < 0:
 
-			rpm_speed = 750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))
+			rpm_speed = int(np.round((750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))), 0))
 
 		else:
 
 			rpm_speed = 750
 
-		if np.abs(delta_angle) > 10:
-		#
-			turn_angle = 15
-			rpm_speed = 1000
-		#
+		if np.abs(delta_angle) > 25:
+
+			turn_angle = 25
+
 		else:
-		#
-			turn_angle = 5
-			rpm_speed = 750
+
+			turn_angle = int(np.round(np.abs(delta_angle), 0))
 
 		# which way do we have to turn
-		if delta_angle > 2: # need to turn to right!
+		if delta_angle > 0: # need to turn to right!
 
 			if self.__rudder >= 0: # rudder is turning the other way!
 
 				pass
 
-		elif delta_angle < -2: # need to turn to left!
+		elif delta_angle < 0: # need to turn to left!
 
 			if self.__rudder <= 0: # rudder is turning the other way!
 
 				turn_angle = (turn_angle * -1)
-
-		else: #close enough!
-
-			turn_angle = 0
 
 		#adjust turn angle in comparison to previous rudder angle
 		rudder_turn = turn_angle
