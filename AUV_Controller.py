@@ -53,22 +53,6 @@ class AUVController ():
 		self.__heading = auv_state['heading']
 		self.__position = auv_state['position']
 
-		if not(green_buoys == None):
-
-			green_buoys_translated = ((green_buoys[0] + auv_state['position'][0]), (green_buoys[1] + auv_state['position'][1]))
-
-		else:
-
-			green_buoys_translated = None
-
-		if not(red_buoys == None):
-
-			red_buoys_translated = ((red_buoys[0] + auv_state['position'][0]), (red_buoys[1] + auv_state['position'][1]))
-
-		else:
-
-			red_buoys_translated = None
-
 		# determine what heading we want to go
 
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
@@ -108,29 +92,37 @@ class AUVController ():
 	### Private member functions
 
 	# calculate the heading we want to go to reach the gate center
-	def __heading_to_position (self, gnext=None, rnext=None):
+	def __heading_to_position (self, gnext = None, rnext = None):
+
 		"""
 		used to set desired_heading
 		target heading becomes self.__desired_heading
 		"""
+
 		# center of the next buoy pair
 		tgt_hdg = self.__heading
 
-		if not(gnext == None and rnext == None):
+		if not(gnext == None) and not(rnext == None):
+
+			print("Can see both")
 
 			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
 			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
-												   gate_center[1] - self.__position[1])) - 270, 360)
+												   gate_center[1] - self.__position[1])) + 360, 360)
 
 			print(f"Target heading: {tgt_hdg}\nHeading: {self.__heading}\nDelta Heading: {tgt_hdg - self.__heading}")
 
 		elif not(gnext == None) and rnext == None:
+
+			print("Can see Green")
 
 			#if only one gate, set gate "center" to buoy location for temporary redirection
 			self.__midpoint = (gnext[0], gnext[1])
 			tgt_hdg = np.mod(np.degrees(np.arctan2(self.__midpoint[0] - self.__position[0],
 												   self.__midpoint[1] - self.__position[1])) + 360,360)
 		elif not(rnext == None) and gnext == None:
+
+			print("Can see Red")
 
 			self.__midpoint  = (rnext[0], rnext[1])
 			tgt_hdg = np.mod(np.degrees(np.arctan2(self.__midpoint[0] - self.__position[0],
@@ -145,9 +137,11 @@ class AUVController ():
 
 		return tgt_hdg
 
-	def __heading_to_angle(self, gnext=None, rnext=None):
+	def __heading_to_angle(self, gnext = None, rnext = None):
+
 		#relative angle to the center of the next buoy pair
 		if(rnext == []) and (gnext == []):
+
 			tgt_hdg = np.mod(self.__heading + 360, 360)
 
 		elif rnext != [] and gnext != []:
