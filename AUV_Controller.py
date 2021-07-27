@@ -101,7 +101,7 @@ class AUVController ():
 			tgt_hdg = np.degrees(np.arctan2(gate_center[0] - self.__position[0],
 												   gate_center[1] - self.__position[1])
 			print(f"target heading no mod: {tgt_hdg}"")
-			tgt_hdg = np.mod(tgt_hdg) + 360,360)
+			tgt_hdg = np.mod(tgt_hdg + 360,360)
 			print(f"target heading with mod: {tgt_hdg}"")
 		elif not(gnext None) and (rnext == None):
 			#if only one gate, set gate "center" to buoy location for temporary redirection
