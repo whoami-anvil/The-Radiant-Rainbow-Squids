@@ -15,7 +15,7 @@ class AUVController ():
 		# initialize state information
 		self.__heading = None
 		self.__speed = None
-		self.__rudder = None
+		self.__rudder = 0.0
 		self.__rudder_prev = 0.0
 		self.__position = None
 		self.__speed_knots = None
@@ -44,7 +44,7 @@ class AUVController ():
 		#used for keeping track of times in AUV
 		self.__time_list.append(auv_state['last_fix_time'])
 
-	def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+	def decide (self, auv_state, red_buoys, green_buoys, sensor_type = 'POSITION'):
 
 		#decide rudder angles
 		#figure out how to get it to move there based on its last rudder angle
@@ -55,7 +55,7 @@ class AUVController ():
 		# determine what heading we want to go
 
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
-		
+
 		if (red_buoys == None or green_buoys == None):
 
 			return (self.__rudder_prev * -1), 750
@@ -65,6 +65,8 @@ class AUVController ():
 			print("Have seen bouys")
 
 			self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
+
+			print()
 
 		elif sensor_type.upper() == 'ANGLE': # camera sensor
 
@@ -97,8 +99,8 @@ class AUVController ():
 		gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
 
 		# heading to gate_center
-		tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0]-self.__position[0],
-											   gate_center[1]-self.__position[1])) + 360,360)
+		tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
+											   gate_center[1] - self.__position[1])) + 360,360)
 
 		return tgt_hdg
 
