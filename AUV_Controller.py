@@ -183,15 +183,15 @@ class AUVController ():
 			rpm_speed = 750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))
 		else:
 			rpm_speed = 750
-		# if np.abs(delta_angle) > 10:
+		if np.abs(delta_angle) > 10:
 		#
-		# 	turn_angle = 15
-		# 	rpm_speed = 1000
+			turn_angle = 15
+		 	rpm_speed = 1000
 		#
-		# else:
+		else:
 		#
-		# 	turn_angle = 5
-		# 	rpm_speed = 750
+		 	turn_angle = 5
+		 	rpm_speed = 750
 
 		# which way do we have to turn
 		if delta_angle > 2: # need to turn to right!
