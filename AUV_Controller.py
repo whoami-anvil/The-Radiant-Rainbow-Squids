@@ -91,7 +91,7 @@ class AUVController ():
 	### Private member functions
 
 	# calculate the heading we want to go to reach the gate center
-	def __heading_to_position (self, gnext, rnext):
+	def __heading_to_position (self, gnext=None, rnext=None):
 
 		# center of the next buoy pair
 		tgt_hdg = self.__heading
@@ -116,7 +116,7 @@ class AUVController ():
 
 		return tgt_hdg
 
-	def __heading_to_angle(self, gnext, rnext):
+	def __heading_to_angle(self, gnext=None, rnext=None):
 		#relative angle to the center of the next buoy pair
 		if(rnext == []) and (gnext == []):
 			tgt_hdg = np.mod(self.__heading + 360, 360)
