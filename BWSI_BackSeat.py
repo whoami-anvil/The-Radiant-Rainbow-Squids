@@ -47,7 +47,7 @@ class BackSeat ():
 		self.__client = SandsharkClient(host=host, port=port)
 		self.__current_time = datetime.datetime.utcnow().timestamp()
 		self.__start_time = self.__current_time
-		self.__log_file = f"backseat_{self.__start_time}.log"
+		self.__log_file = f"mission_logs/backseat_{self.__start_time}.log"
 		self.__warp = warp
 
 		self.__auv_state = dict([
@@ -122,7 +122,7 @@ class BackSeat ():
 
 				### turn your output message into a BPRMB request!
 
-				if not(engine_started) and (self.__current_time - self.__start_time) > 1:
+				if not(engine_started) and (self.__current_time - self.__start_time) > 0:
 
 					## We want to change the speed. For now we will always use the RPM (1500 Max)
 					self.__current_time = datetime.datetime.utcnow().timestamp()

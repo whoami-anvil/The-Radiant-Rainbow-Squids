@@ -14,12 +14,13 @@ class AUVController ():
 
 		# initialize state information
 		self.__heading = None
-		self.__speed = None
-		self.__rudder = None
-		self.__rudder_prev = 0.0
+		self.__speed = 0
+		self.__rudder = 0
+		self.__rudder_prev = 0
 		self.__position = None
 		self.__speed_knots = None
 		self.__speed_mps = None
+		self.__midpoint = None
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -52,36 +53,52 @@ class AUVController ():
 		self.__heading = auv_state['heading']
 		self.__position = auv_state['position']
 
+		if not(green_buoys == None):
+
+			green_buoys_translated = ((green_buoys[0] + auv_state['position'][0]), (green_buoys[1] + auv_state['position'][1]))
+
+		else:
+
+			green_buoys_translated = None
+
+		if not(red_buoys == None):
+
+			red_buoys_translated = ((red_buoys[0] + auv_state['position'][0]), (red_buoys[1] + auv_state['position'][1]))
+
+		else:
+
+			red_buoys_translated = None
+
 		# determine what heading we want to go
 
 		print(f"Red Buoys: {red_buoys}\nGreen Buoys: {green_buoys}")
 
-		if (red_buoys == None or green_buoys == None):
+		if (red_buoys_translated == None or green_buoys_translated == None):
 
-			return (self.__rudder_prev * -1), 750
+			return 0, 750
 
 		elif sensor_type.upper() == 'POSITION': # known positions of buoys
 
-			print("Have seen bouys")
+			print("Have seen buoys by position")
 
 			self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
 
 		elif sensor_type.upper() == 'ANGLE': # camera sensor
 
-			print("Have seen bouys")
+			print("Have seen buoys by angle")
 
 			self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
 		# determine whether and what command to issue to desired heading
-		delta_rudder, new_engine_speed = self.__select_command()
+		new_rudder, new_engine_speed = self.__select_command()
 
-		self.__rudder_prev += delta_rudder
+		self.__rudder_prev = new_rudder
 
 		self.__speed = new_engine_speed
 		self.__speed_knots = self.__speed / 250
 		self.__speed_mps = self.__speed_knots * (1852 / 3600)
 
-		return delta_rudder, new_engine_speed
+		return new_rudder, new_engine_speed
 
 	# return the desired heading to a public requestor
 	def get_desired_heading (self):
@@ -96,23 +113,32 @@ class AUVController ():
 		# center of the next buoy pair
 		tgt_hdg = self.__heading
 
-		if gnext and rnext:
+		if not(gnext == None and rnext == None):
+
 			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
 			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
-												   gate_center[1] - self.__position[1])) + 360,360)
+												   gate_center[1] - self.__position[1])) - 270, 360)
 
-		elif gnext and not rnext:
+			print(f"Target heading: {tgt_hdg}\nHeading: {self.__heading}\nDelta Heading: {tgt_hdg - self.__heading}")
+
+		elif not(gnext == None) and rnext == None:
+
 			#if only one gate, set gate "center" to buoy location for temporary redirection
-			gate_center = (gnext[0], gnext[1])
-			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
-												   gate_center[1] - self.__position[1])) + 360,360)
-		elif rnext and not gnext:
-			gate_center = (rnext[0], rnext[1])
-			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
-												   gate_center[1] - self.__position[1])) + 360,360)
+			self.__midpoint = (gnext[0], gnext[1])
+			tgt_hdg = np.mod(np.degrees(np.arctan2(self.__midpoint[0] - self.__position[0],
+												   self.__midpoint[1] - self.__position[1])) + 360,360)
+		elif not(rnext == None) and gnext == None:
+
+			self.__midpoint  = (rnext[0], rnext[1])
+			tgt_hdg = np.mod(np.degrees(np.arctan2(self.__midpoint[0] - self.__position[0],
+												   self.__midpoint[1] - self.__position[1])) + 360,360)
+
+		else:
+
+			tgt_hdg = self.__heading
+
 		# else, do nothing and go straight
 		# heading to gate_center
-
 
 		return tgt_hdg
 
@@ -126,7 +152,7 @@ class AUVController ():
 			print(rnext[0])
 
 			print(gnext[0])
-   			relative_angle = (gnext[0] + rnext[0]) / 2.0
+			relative_angle = (gnext[0] + rnext[0]) / 2.0
 
    # if ((self.__heading + relative_angle) < 360):
 			tgt_hdg = self.__heading + relative_angle
@@ -177,21 +203,26 @@ class AUVController ():
 		"""
 		# editing rudder speed
 		if delta_angle > 0:
+
 			rpm_speed = 750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))
 
 		elif delta_angle < 0:
+
 			rpm_speed = 750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))
+
 		else:
+
 			rpm_speed = 750
+
 		if np.abs(delta_angle) > 10:
 		#
 			turn_angle = 15
-		 	rpm_speed = 1000
+			rpm_speed = 1000
 		#
 		else:
 		#
-		 	turn_angle = 5
-		 	rpm_speed = 750
+			turn_angle = 5
+			rpm_speed = 750
 
 		# which way do we have to turn
 		if delta_angle > 2: # need to turn to right!
@@ -211,6 +242,6 @@ class AUVController ():
 			turn_angle = 0
 
 		#adjust turn angle in comparison to previous rudder angle
-		rudder_turn = self.__rudder_prev - turn_angle
+		rudder_turn = turn_angle
 
 		return rudder_turn, rpm_speed

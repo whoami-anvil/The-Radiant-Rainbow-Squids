@@ -207,8 +207,8 @@ class Sandshark(object):
             print(f"INVALID RPM REQUEST: {rpm}")
         
     def set_rudder(self, rudder):
-        desired = self.__rudder_position + rudder
-        if np.abs(desired) < self.__HARD_RUDDER_DEG:
+        desired = rudder
+        if np.abs(desired) <= self.__HARD_RUDDER_DEG:
             self.__rudder_position = desired
         else:
             print(f"INVALID RUDDER REQUEST: {desired}")
@@ -347,7 +347,7 @@ class Sandshark(object):
             
             if (cmd[2]=="DEGREES" and cmd[3]=="RUDDER"):
                 if not cmd[1].isdigit():
-                    return "COMMANDa"
+                    return "COMMAND"
                 deg = int(cmd[1])
             else:
                 return "COMMAND"

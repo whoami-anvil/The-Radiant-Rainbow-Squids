@@ -192,10 +192,13 @@ class SandsharkClient():
                     if data:
                         data = remain + data
                         msgs = data.split(b'\n')
+                        #print(f"msgs = {msgs}")
                         # check if msgs[-1] is complete
                         if len(msgs[-1])<10 or (msgs[-1][-1] != '\r' and msgs[-1][-3] != '*'):
                             remain = msgs[-1]
-                            msgs = msgs[:-2]
+                            msgs = msgs[:-1]
+                            #print(f"remain = {remain}")
+                            #print(f"msgs2 = {msgs}")
                             
                         for msg in msgs:
                             self.__incoming.put(msg)
