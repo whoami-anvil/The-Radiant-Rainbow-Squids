@@ -11,6 +11,9 @@ import numpy as np
 class AUVController ():
 
 	def __init__ (self):
+		"""
+		intialize the state of the AUV
+		"""
 
 		# initialize state information
 		self.__heading = None
@@ -27,7 +30,9 @@ class AUVController ():
 		self.__time_list = []
 
 	def initialize (self, auv_state):
-
+		"""
+		reinitialize auv state
+		"""
 		self.__heading = auv_state['heading']
 		self.__position = auv_state['position']
 		self.__speed_knots = self.__speed / 250
@@ -38,7 +43,9 @@ class AUVController ():
 
 	### Public member functions
 	def update_state (self, auv_state):
-
+		"""
+		update controller's heading, position, last updated time
+		"""
 		self.__heading = auv_state['heading']
 		self.__position = auv_state['position']
 
@@ -46,6 +53,9 @@ class AUVController ():
 		self.__time_list.append(auv_state['last_fix_time'])
 
 	def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+		"""
+		update desired heading and return new rudder angle and speed
+		"""
 
 		#decide rudder angles
 		#figure out how to get it to move there based on its last rudder angle
@@ -102,6 +112,9 @@ class AUVController ():
 
 	# return the desired heading to a public requestor
 	def get_desired_heading (self):
+		"""
+		return the desired heading of the AUV
+		"""
 
 		return self.__desired_heading
 
@@ -110,6 +123,7 @@ class AUVController ():
 	# calculate the heading we want to go to reach the gate center
 	def __heading_to_position (self, gnext=None, rnext=None):
 		"""
+		DEPRECATED
 		used to set desired_heading
 		target heading becomes self.__desired_heading
 		"""
@@ -146,38 +160,48 @@ class AUVController ():
 		return tgt_hdg
 
 	def __heading_to_angle(self, gnext=None, rnext=None):
+		"""
+		return desired heading based on angle relative to the AUV
+		"""
 		#relative angle to the center of the next buoy pair
-		if(rnext == []) and (gnext == []):
+		if(rnext == None) and (gnext == None):
 			tgt_hdg = np.mod(self.__heading + 360, 360)
 
-		elif rnext != [] and gnext != []:
+		elif (rnext != None) and (gnext != None):
 
-			print(rnext[0])
+			print(rnext)
 
-			print(gnext[0])
-			relative_angle = (gnext[0] + rnext[0]) / 2.0
+			print(gnext)
+			relative_angle = (gnext + rnext) / 2.0
+			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
+		elif (rnext != None) and (gnext == None):
+			#set tgt_hdg to heading of rnext
+			relative_angle = rnext
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
 
+		#
 		# if ((self.__heading + relative_angle) < 360):
-		# 	tgt_hdg = self.__heading + relative_angle
+		#   	tgt_hdg = self.__heading + relative_angle
 		#
 		# elif ((self.__heading + relative_angle) >= 360):
-		# 	tgt_hdg = relative_angle - (360 - self.__heading)
+		#   	tgt_hdg = relative_angle - (360 - self.__heading)
 		#
 		# elif len(gnext)>0:
 		#
-		# 	tgt_hdg = self.__heading + gnext[0]
+		#   	tgt_hdg = self.__heading + gnext[0]
 		#
 		# elif len(rnext)>0:
 		#
-		# 	tgt_hdg = self.__heading + rnext[0]
+		#   	tgt_hdg = self.__heading + rnext[0]
 
 
 		return tgt_hdg
 
 	# choose a command to send to the front seat
 	def __select_command(self):
-
+		"""
+		return the rudder turn angle and rpm speed based on difference in heading
+		"""
 		# Unless we need to issue a command, we will return None
 		turn_angle = None #for rudder
 		rpm_speed = 750 #for RPM, 500RPM/knot, up to 5 knots
