@@ -183,13 +183,13 @@ class ImageProcessor():
 
 				img_points_red_value_scaled = (img_points_red * (255 / np.max(img_points_red))).astype(np.uint8)
 				thresh_red, img_out_red = cv2.threshold(img_points_red_value_scaled, 20, 255, cv2.THRESH_BINARY)
-				contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+				contour_img_red, contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
 			if not(np.max(img_points_green) == 0):
 
 				img_points_green_value_scaled = (img_points_green * (255 / np.max(img_points_green))).astype(np.uint8)
 				thresh_green, img_out_green = cv2.threshold(img_points_green_value_scaled, 20, 255, cv2.THRESH_BINARY)
-				contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+				contour_img_green, contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
 			# makes empty lists to stor info about each contour (like making table out of lists)
 			contour_dims_red = []
