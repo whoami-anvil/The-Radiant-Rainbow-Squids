@@ -28,7 +28,7 @@ class AUVController ():
 		self.__order = None
 		self.__search = False
 		self.__search_direction = "left"
-		self.__search_timer = 10
+		self.__search_timer = 6
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -79,7 +79,7 @@ class AUVController ():
 
 				if ((green_buoys == None) and (red_buoys == None)):
 
-					print(f"No buoys:\n\t{green_buoys}\n\t{red_buoys}")
+					#print(f"No buoys:\n\t{green_buoys}\n\t{red_buoys}")
 
 					self.__search_timer -= 1
 
@@ -94,7 +94,7 @@ class AUVController ():
 			else:
 
 				self.__search = False
-				self.__search_timer = 3
+				self.__search_timer = 6
 
 		if (order != None):
 
@@ -105,13 +105,13 @@ class AUVController ():
 
 			### DEPRETIATED ###
 
-			print("Have seen buoys by position")
+			#print("Have seen buoys by position")
 
 			self.__desired_heading = self.__heading_to_position(green_buoys, red_buoys)
 
 		elif sensor_type.upper() == 'ANGLE': # camera sensor
 
-			print("Have seen buoys by angle")
+			#print("Have seen buoys by angle")
 
 			self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
 
@@ -166,17 +166,17 @@ class AUVController ():
 
 		if not(gnext == None) and not(rnext == None):
 
-			print("Can see both")
+			#print("Can see both")
 
 			gate_center = ((gnext[0] + rnext[0]) / 2.0, (gnext[1] + rnext[1]) / 2.0)
 			tgt_hdg = np.mod(np.degrees(np.arctan2(gate_center[0] - self.__position[0],
 												   gate_center[1] - self.__position[1])) + 360, 360)
 
-			print(f"Target heading: {tgt_hdg}\nHeading: {self.__heading}\nDelta Heading: {tgt_hdg - self.__heading}")
+			#print(f"Target heading: {tgt_hdg}\nHeading: {self.__heading}\nDelta Heading: {tgt_hdg - self.__heading}")
 
 		elif not(gnext == None) and rnext == None:
 
-			print("Can see Green")
+			#print("Can see Green")
 
 			#if only one gate, set gate "center" to buoy location for temporary redirection
 			self.__midpoint = (gnext[0], gnext[1])
@@ -184,7 +184,7 @@ class AUVController ():
 												   self.__midpoint[1] - self.__position[1])) + 360,360)
 		elif not(rnext == None) and gnext == None:
 
-			print("Can see Red")
+			#print("Can see Red")
 
 			self.__midpoint  = (rnext[0], rnext[1])
 			tgt_hdg = np.mod(np.degrees(np.arctan2(self.__midpoint[0] - self.__position[0],
@@ -208,7 +208,7 @@ class AUVController ():
 		#relative angle to the center of the next buoy pair
 		if (rnext == None) and (gnext == None):
 
-			print(f"No angle seen: {int(datetime.datetime.utcnow().timestamp())}")
+			#print(f"No angle seen: {int(datetime.datetime.utcnow().timestamp())}")
 
 			tgt_hdg = np.mod(self.__heading + 360, 360)
 
@@ -216,7 +216,7 @@ class AUVController ():
 
 		elif (rnext != None) and (gnext != None):
 
-			print(f"Both angles seen: {int(datetime.datetime.utcnow().timestamp())}\n\tRed Angle: {rnext}\n\tGreen Angle: {gnext}")
+			#print(f"Both angles seen: {int(datetime.datetime.utcnow().timestamp())}\n\tRed Angle: {rnext}\n\tGreen Angle: {gnext}")
 
 			if ((self.__order == "gr") and (rnext <= gnext)):
 
@@ -234,9 +234,9 @@ class AUVController ():
 
 		elif (rnext != None) and (gnext == None):
 
-			print(f"Only red seen: {int(datetime.datetime.utcnow().timestamp())}\n\tRed Angle: {rnext}")
+			#print(f"Only red seen: {int(datetime.datetime.utcnow().timestamp())}\n\tRed Angle: {rnext}")
 
-			print(f"Order: {self.__order}")
+			#print(f"Order: {self.__order}")
 
 			#set tgt_hdg to heading of rnext
 			if (self.__order == None):
@@ -253,19 +253,19 @@ class AUVController ():
 				relative_angle = -90
 				self.__search_direction = "left"
 
-			print(f"Relative Angle is: {relative_angle}")
+			#print(f"Relative Angle is: {relative_angle}")
 
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
 
 			self.__search = True
 
-			print(f"Target is now: {tgt_hdg}")
+			#print(f"Target is now: {tgt_hdg}")
 
 		elif (gnext != None) and (rnext == None):
 
-			print(f"Only green seen: {int(datetime.datetime.utcnow().timestamp())}\n\tGreen Angle: {gnext}")
+			#print(f"Only green seen: {int(datetime.datetime.utcnow().timestamp())}\n\tGreen Angle: {gnext}")
 
-			print(f"Order: {self.__order}")
+			#print(f"Order: {self.__order}")
 
 			#set tgt_hdg to heading of rnext
 			if (self.__order == None):
@@ -282,12 +282,12 @@ class AUVController ():
 				relative_angle = -90
 				self.__search_direction = "left"
 
-			print(f"Relative Angle is: {relative_angle}")
+			#print(f"Relative Angle is: {relative_angle}")
 
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
 			self.__search = True
 
-			print(f"Target is now: {tgt_hdg}")
+			#print(f"Target is now: {tgt_hdg}")
 
 		#
 		# if ((self.__heading + relative_angle) < 360):
@@ -320,7 +320,7 @@ class AUVController ():
 		# determine the angle between current and desired heading
 		delta_angle = self.__desired_heading - self.__heading
 
-		print(f"Delta Angle: {delta_angle}")
+		#print(f"Delta Angle: {delta_angle}")
 
 		if delta_angle > 180: # angle too big, go the other way!
 
@@ -377,6 +377,6 @@ class AUVController ():
 		#adjust turn angle in comparison to previous rudder angle
 		rudder_turn = turn_angle
 
-		print(f"New Rudder is: {rudder_turn}\nNew Speed is: {rpm_speed}")
+		#print(f"New Rudder is: {rudder_turn}\nNew Speed is: {rpm_speed}")
 
 		return rudder_turn, rpm_speed
