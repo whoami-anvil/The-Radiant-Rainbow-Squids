@@ -113,7 +113,8 @@ class BackSeat ():
 				###
 				### Here you process the image and return the angles to target
 				### green, red = self.__detect_buoys(img)
-				red, green = self.__buoy_detector.run(self.__auv_state)
+
+				red, green, order = self.__buoy_detector.run(self.__auv_state)
 				### ---------------------------------------------------------- #
 
 
@@ -142,7 +143,7 @@ class BackSeat ():
 				elif (self.__current_time - self.__start_time) > 3:
 
 					# Z - We need to add decide command and save outputs
-					delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, red, green, sensor_type = 'ANGLE')
+					delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, green, red, order, sensor_type = 'ANGLE')
 
 					### turn your output message into a BPRMB request!
 
