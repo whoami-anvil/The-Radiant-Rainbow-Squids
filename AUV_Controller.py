@@ -28,6 +28,7 @@ class AUVController ():
 		self.__order = None
 		self.__search = False
 		self.__search_direction = "left"
+		self.__search_timer = 3
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -70,7 +71,15 @@ class AUVController ():
 
 		if (self.__search):
 
+			if (self.__search_timer == 0):
+
+				return -100000000, -100000000
+
 			if not((green_buoys != None) and (red_buoys != None)):
+
+				if ((green_buoys == None) and (red_buoys == None)):
+
+					self.__search_timer -= 1
 
 				if self.__search_direction == "left":
 
@@ -83,6 +92,7 @@ class AUVController ():
 			else:
 
 				self.__search = False
+				self.__search_timer = 3
 
 		if (order != None):
 

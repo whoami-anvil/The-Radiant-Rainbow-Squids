@@ -147,12 +147,23 @@ class BackSeat ():
 
 					### turn your output message into a BPRMB request!
 
-					# Z - We need to save our output message
-					self.__current_time = datetime.datetime.utcnow().timestamp()
-					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-					cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
-					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-					self.send_message(msg)
+					if (delta_rudder == -100000000):
+
+						self.__current_time = datetime.datetime.utcnow().timestamp()
+						hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+						cmd = f"BPABT,{hhmmss},Mission Sucsessful, 0"
+						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+						self.send_message(msg)
+						break
+
+					else:
+
+						# Z - We need to save our output message
+						self.__current_time = datetime.datetime.utcnow().timestamp()
+						hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+						cmd = f"BPRMB,{hhmmss},{delta_rudder},,,{new_engine_speed},0,1"
+						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+						self.send_message(msg)
 
 				time.sleep(1 / self.__warp)
 
