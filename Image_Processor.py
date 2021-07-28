@@ -208,8 +208,8 @@ class ImageProcessor():
 				contour_dims_red.append((x, y))
 
 				# finds center of each contour
-				center_x, center_y = self.sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[1] for item in contour])), img.shape[1], img.shape[0])
-				contour_centers_unscaled_red.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[1] for item in contour]))))
+				center_x, center_y = self.sensor_position_px(int(np.mean([item[0] for item in contour])), int(np.mean([item[1] for item in contour])), img.shape[1], img.shape[0])
+				contour_centers_unscaled_red.append((int(np.mean([item[0] for item in contour])), int(np.mean([item[1] for item in contour]))))
 				contour_centers_red.append((center_x, center_y))
 
 			for contour in contours_green:
