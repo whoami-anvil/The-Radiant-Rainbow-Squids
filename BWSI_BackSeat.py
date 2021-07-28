@@ -151,7 +151,7 @@ class BackSeat ():
 
 						self.__current_time = datetime.datetime.utcnow().timestamp()
 						hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-						cmd = f"BPABT,{hhmmss},Mission Sucsessful, 0"
+						cmd = f"BPRMB,{hhmmss},0,,,0,0,1"
 						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
 						self.send_message(msg)
 						break
