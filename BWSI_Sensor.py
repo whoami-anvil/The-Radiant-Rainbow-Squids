@@ -21,8 +21,8 @@ class BWSI_Camera(object):
         # Parameters relevant for simulating camera images
         self.__Wpix = 480
         self.__Hpix = 640
-        self.__max_angle_W = 31.1
-        self.__max_angle_H = 24.4
+        self.__max_angle_W = 24.4
+        self.__max_angle_H = 31.1
 
         # calculate the horizontal and vertical angles to the pixels
         deg_per_pix_W = 2*self.__max_angle_W /  self.__Wpix
