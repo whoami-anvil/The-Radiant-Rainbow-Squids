@@ -136,7 +136,7 @@ class ImageProcessor():
 
 			# process and find the buoys!
 			# loads image, resizes, and applies box filter
-			img = cv2.imread(str(fn))
+			img = np.flip(cv2.imread(str(fn)), axis = 0)
 			img_brg_filtered = cv2.boxFilter(img, -1, (10,10))
 
 			# puts image thresholds using RGB makes 3 boolean arrays depending on if pixel meets thresholds
