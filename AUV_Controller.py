@@ -28,7 +28,7 @@ class AUVController ():
 		self.__order = None
 		self.__search = False
 		self.__search_direction = "left"
-		self.__search_timer = 6
+		self.__search_timer = 30
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -94,7 +94,7 @@ class AUVController ():
 			else:
 
 				self.__search = False
-				self.__search_timer = 6
+				self.__search_timer = 30
 
 		if (order != None):
 
