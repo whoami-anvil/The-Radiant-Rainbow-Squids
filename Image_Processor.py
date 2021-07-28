@@ -14,8 +14,8 @@ import datetime
 
 import time
 import numpy as np
-#import picamera
-#import picamera.array
+import picamera
+import picamera.array
 
 import cv2
 import matplotlib.pyplot as plt
@@ -33,7 +33,7 @@ class ImageProcessor():
 			self.__simField = None
 
 		else:
-			#self.__camera = picamera.PiCamera()
+			self.__camera = picamera.PiCamera()
 			self.__camera.resolution = (640, 480)
 			self.__camera.framerate = 24
 			time.sleep(2) # camera warmup time
@@ -118,7 +118,7 @@ class ImageProcessor():
 					self.__camera.capture(self.__image, 'bgr')
 
 				except:
-					
+
 					# restart the camera
 # =============================================================================
 #                     self.__camera = picamera.PiCamera()
