@@ -112,9 +112,13 @@ class ImageProcessor():
 				image = self.__camera.get_frame(auv_state['position'], auv_state['heading'], self.__simField)
 
 			elif self.__camera_type == 'PICAM':
+
 				try:
+
 					self.__camera.capture(self.__image, 'bgr')
+
 				except:
+					
 					# restart the camera
 # =============================================================================
 #                     self.__camera = picamera.PiCamera()

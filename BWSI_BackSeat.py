@@ -65,7 +65,7 @@ class BackSeat ():
 		self.__datum = None
 
 		# set to PICAM for the real camera
-		self.__buoy_detector = ImageProcessor(camera = 'SIM')
+		self.__buoy_detector = ImageProcessor(camera = 'PICAM')
 		self.__autonomy = AUVController()
 
 	def run (self):
