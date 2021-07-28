@@ -130,7 +130,7 @@ class BackSeat ():
 					# This is the timestamp format from NMEA: hhmmss.ss
 					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 
-					cmd = f"BPRMB,{hhmmss},1,0,,750,0,1"
+					cmd = f"BPRMB,{hhmmss},0,1,0,750,0,1"
 
 					# NMEA requires a checksum on all the characters between the $ and the *
 					# you can use the BluefinMessages.checksum() function to calculate
