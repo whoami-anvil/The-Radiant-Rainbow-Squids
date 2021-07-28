@@ -107,65 +107,67 @@ class BackSeat ():
 						print(f"{self.__auv_state}")
 
 
-				### ---------------------------------------------------------- #
-				### Here should be the request for a photo from the camera
-				### img = self.__camera.acquire_image()
-				###
-				### Here you process the image and return the angles to target
-				### green, red = self.__detect_buoys(img)
+				if (self.__auv_state['heading'] != None):
+					
+					### ---------------------------------------------------------- #
+					### Here should be the request for a photo from the camera
+					### img = self.__camera.acquire_image()
+					###
+					### Here you process the image and return the angles to target
+					### green, red = self.__detect_buoys(img)
 
-				red, green, order = self.__buoy_detector.run(self.__auv_state)
-				### ---------------------------------------------------------- #
+					red, green, order = self.__buoy_detector.run(self.__auv_state)
+					### ---------------------------------------------------------- #
 
 
-				### self.__autonomy.decide() probably goes here!
-				### ---------------------------------------------------------- #
-
-				### turn your output message into a BPRMB request!
-
-				if not(engine_started) and (self.__current_time - self.__start_time) > 0:
-
-					## We want to change the speed. For now we will always use the RPM (1500 Max)
-					self.__current_time = datetime.datetime.utcnow().timestamp()
-					# This is the timestamp format from NMEA: hhmmss.ss
-					hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-
-					cmd = f"BPRMB,{hhmmss},0,1,0,750,0,1"
-
-					# NMEA requires a checksum on all the characters between the $ and the *
-					# you can use the BluefinMessages.checksum() function to calculate
-					# and write it like below. The checksum goes after the *
-					msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-					self.send_message(msg)
-
-					engine_started = True
-
-				elif (self.__current_time - self.__start_time) > 3:
-
-					# Z - We need to add decide command and save outputs
-					delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, green, red, order, sensor_type = 'ANGLE')
+					### self.__autonomy.decide() probably goes here!
+					### ---------------------------------------------------------- #
 
 					### turn your output message into a BPRMB request!
 
-					if (delta_rudder == -100000000):
+					if not(engine_started) and (self.__current_time - self.__start_time) > 2:
 
+						## We want to change the speed. For now we will always use the RPM (1500 Max)
 						self.__current_time = datetime.datetime.utcnow().timestamp()
+						# This is the timestamp format from NMEA: hhmmss.ss
 						hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-						cmd = f"BPRMB,{hhmmss},0,,,0,0,1"
-						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
-						self.send_message(msg)
-						break
 
-					else:
+						cmd = f"BPRMB,{hhmmss},0,1,0,750,0,1"
 
-						# Z - We need to save our output message
-						self.__current_time = datetime.datetime.utcnow().timestamp()
-						hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
-						cmd = f"BPRMB,{hhmmss},{delta_rudder},1,0,{new_engine_speed},0,1"
+						# NMEA requires a checksum on all the characters between the $ and the *
+						# you can use the BluefinMessages.checksum() function to calculate
+						# and write it like below. The checksum goes after the *
 						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
 						self.send_message(msg)
 
-				time.sleep(1 / self.__warp)
+						engine_started = True
+
+					elif (self.__current_time - self.__start_time) > 3:
+
+						# Z - We need to add decide command and save outputs
+						delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, green, red, order, sensor_type = 'ANGLE')
+
+						### turn your output message into a BPRMB request!
+
+						if (delta_rudder == -100000000):
+
+							self.__current_time = datetime.datetime.utcnow().timestamp()
+							hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+							cmd = f"BPRMB,{hhmmss},0,,,0,0,1"
+							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+							self.send_message(msg)
+							break
+
+						else:
+
+							# Z - We need to save our output message
+							self.__current_time = datetime.datetime.utcnow().timestamp()
+							hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
+							cmd = f"BPRMB,{hhmmss},{delta_rudder},1,0,{new_engine_speed},0,1"
+							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+							self.send_message(msg)
+
+					time.sleep(1 / self.__warp)
 
 		except Exception as e:
 
