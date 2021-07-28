@@ -154,8 +154,8 @@ def main():
 		port = 29500
 
 	print(f"port = {port}")
-
-	front_seat = FrontSeat(port=port)
+	#front_seat = FrontSeat(port=port)
+	front_seat = FrontSeat(port=int(port))
 	front_seat.run()
 
 if __name__ == '__main__':
