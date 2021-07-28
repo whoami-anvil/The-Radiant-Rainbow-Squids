@@ -28,7 +28,7 @@ class AUVController ():
 		self.__order = None
 		self.__search = False
 		self.__search_direction = "left"
-		self.__search_timer = 3
+		self.__search_timer = 10
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -78,6 +78,8 @@ class AUVController ():
 			if not((green_buoys != None) and (red_buoys != None)):
 
 				if ((green_buoys == None) and (red_buoys == None)):
+
+					print(f"No buoys:\n\t{green_buoys}\n\t{red_buoys}")
 
 					self.__search_timer -= 1
 
