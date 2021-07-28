@@ -7,6 +7,7 @@ Created on Wed Jul  7 12:05:08 2021
 """
 import sys
 import numpy as np
+import datetime
 
 class AUVController ():
 
@@ -24,6 +25,9 @@ class AUVController ():
 		self.__speed_knots = None
 		self.__speed_mps = None
 		self.__midpoint = None
+		self.__order = None
+		self.__search = False
+		self.__search_direction = "left"
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -52,7 +56,8 @@ class AUVController ():
 		#used for keeping track of times in AUV
 		self.__time_list.append(auv_state['last_fix_time'])
 
-	def decide (self, auv_state, green_buoys, red_buoys, sensor_type = 'POSITION'):
+	def decide (self, auv_state, green_buoys, red_buoys, order, sensor_type = 'POSITION'):
+
 		"""
 		update desired heading and return new rudder angle and speed
 		"""
@@ -63,13 +68,28 @@ class AUVController ():
 		self.__heading = auv_state['heading']
 		self.__position = auv_state['position']
 
+		if (self.__search):
+
+			if not((green_buoys != None) and (red_buoys != None)):
+
+				if self.__search_direction == "left":
+
+					return 25, 750
+
+				else:
+
+					return -25, 750
+
+			else:
+
+				self.__search = False
+
+		if (order != None):
+
+			self.__order = order
 		# determine what heading we want to go
 
-		if (red_buoys == None or green_buoys == None):
-
-			return 0, 750
-
-		elif sensor_type.upper() == 'POSITION': # known positions of buoys
+		if sensor_type.upper() == 'POSITION': # known positions of buoys
 
 			### DEPRETIATED ###
 
@@ -82,6 +102,22 @@ class AUVController ():
 			print("Have seen buoys by angle")
 
 			self.__desired_heading = self.__heading_to_angle(green_buoys, red_buoys)
+
+		if (self.__search):
+
+			if not((green_buoys != None) and (red_buoys != None)):
+
+				if self.__search_direction == "left":
+
+					return 25, 750
+
+				else:
+
+					return -25, 750
+
+			else:
+
+				self.__search = False
 
 		# determine whether and what command to issue to desired heading
 		new_rudder, new_engine_speed = self.__select_command()
@@ -160,18 +196,86 @@ class AUVController ():
 		#relative angle to the center of the next buoy pair
 		if (rnext == None) and (gnext == None):
 
+			print(f"No angle seen: {int(datetime.datetime.utcnow().timestamp())}")
+
 			tgt_hdg = np.mod(self.__heading + 360, 360)
+
+			self.__search = True
 
 		elif (rnext != None) and (gnext != None):
 
-			relative_angle = (gnext + rnext) / 2.0
+			print(f"Both angles seen: {int(datetime.datetime.utcnow().timestamp())}\n\tRed Angle: {rnext}\n\tGreen Angle: {gnext}")
+
+			if ((self.__order == "gr") and (rnext <= gnext)):
+
+				relative_angle = 90
+
+			elif ((self.__order == "rg") and (gnext <= rnext)):
+
+				relative_angle = 90
+
+			else:
+
+				relative_angle = (gnext + rnext) / 2.0
+
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
 
 		elif (rnext != None) and (gnext == None):
 
+			print(f"Only red seen: {int(datetime.datetime.utcnow().timestamp())}\n\tRed Angle: {rnext}")
+
+			print(f"Order: {self.__order}")
+
 			#set tgt_hdg to heading of rnext
-			relative_angle = rnext
+			if (self.__order == None):
+
+				relative_angle = rnext
+
+			elif (self.__order == "rg"):
+
+				relative_angle = 90
+				self.__search_direction = "right"
+
+			else:
+
+				relative_angle = -90
+				self.__search_direction = "left"
+
+			print(f"Relative Angle is: {relative_angle}")
+
 			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
+
+			self.__search = True
+
+			print(f"Target is now: {tgt_hdg}")
+
+		elif (gnext != None) and (rnext == None):
+
+			print(f"Only green seen: {int(datetime.datetime.utcnow().timestamp())}\n\tGreen Angle: {gnext}")
+
+			print(f"Order: {self.__order}")
+
+			#set tgt_hdg to heading of rnext
+			if (self.__order == None):
+
+				relative_angle = gnext
+
+			elif (self.__order == "gr"):
+
+				relative_angle = 90
+				self.__search_direction = "right"
+
+			else:
+
+				relative_angle = -90
+				self.__search_direction = "left"
+
+			print(f"Relative Angle is: {relative_angle}")
+
+			tgt_hdg = np.mod(self.__heading + relative_angle + 360, 360)
+			self.__search = True
+
+			print(f"Target is now: {tgt_hdg}")
 
 		#
 		# if ((self.__heading + relative_angle) < 360):
@@ -202,7 +306,8 @@ class AUVController ():
 		rpm_speed = 750 #for RPM, 500RPM/knot, up to 5 knots
 
 		# determine the angle between current and desired heading
-		delta_angle = self.__heading - self.__desired_heading
+		delta_angle = self.__desired_heading - self.__heading
+
 		print(f"Delta Angle: {delta_angle}")
 
 		if delta_angle > 180: # angle too big, go the other way!
@@ -226,17 +331,19 @@ class AUVController ():
 		"""
 
 		# editing rudder speed
-		if delta_angle > 0:
+		rpm_speed = 750
 
-			rpm_speed = int(np.round((750 + 250 / (1 + 250 * np.exp(-0.5 * delta_angle))), 0))
+		#if delta_angle > 0:
 
-		elif delta_angle < 0:
+		#	rpm_speed = int(np.round((1500 - (750 / (1 + 750 * np.exp(-0.5 * delta_angle)))), 0))
 
-			rpm_speed = int(np.round((750 + 250 / (1 + 250 * np.exp(0.5 * delta_angle))), 0))
+		#elif delta_angle < 0:
 
-		else:
+		#	rpm_speed = int(np.round((1500 - (750 / (1 + 750 * np.exp(0.5 * delta_angle)))), 0))
 
-			rpm_speed = 750
+		#else:
+
+		#	rpm_speed = 1500
 
 		if np.abs(delta_angle) > 25:
 
@@ -249,17 +356,15 @@ class AUVController ():
 		# which way do we have to turn
 		if delta_angle > 0: # need to turn to right!
 
-			if self.__rudder >= 0: # rudder is turning the other way!
-
-				pass
+			turn_angle = (turn_angle * -1)
 
 		elif delta_angle < 0: # need to turn to left!
 
-			if self.__rudder <= 0: # rudder is turning the other way!
-
-				turn_angle = (turn_angle * -1)
+			pass
 
 		#adjust turn angle in comparison to previous rudder angle
 		rudder_turn = turn_angle
+
+		print(f"New Rudder is: {rudder_turn}\nNew Speed is: {rpm_speed}")
 
 		return rudder_turn, rpm_speed

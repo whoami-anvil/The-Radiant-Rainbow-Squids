@@ -1,0 +1,224 @@
+### Our image processing code but seperated from the whole debacle
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+
+def px_to_mm (value, px, side = "W"):
+
+	if (side == "W"):
+
+		return (value - (0.5 * px)) * (3.68 / px)
+
+	elif (side == "H"):
+
+		return ((0.5 * px) - value) * (2.76 / px)
+
+def sensor_position_m (pix_x, pix_y, res_x, res_y):
+
+	x = pix_x - (0.5 * res_x)
+	y = (0.5 * res_y) - pix_y
+
+	x_prop = (3.68 / 1000) / res_x
+	y_prop = (2.76 / 1000) / res_y
+
+	sensor_pos_x = x * x_prop
+	sensor_pos_y = (y * y_prop)
+
+	return (sensor_pos_x, sensor_pos_y)
+
+def sensor_position_px (pix_x, pix_y, res_x, res_y):
+
+	x = pix_x - (0.5 * res_x)
+	y = (0.5 * res_y) - pix_y
+
+	return (x, y)
+
+def get_angles (x, y):
+
+	f = (3.04 / 1000)
+
+	hor_ang = np.degrees(np.arctan2(x, f))
+	vert_ang = np.degrees(np.arctan2(y, f))
+
+	return hor_ang, vert_ang
+
+fn = f"frames/frame_1627494593.jpg"
+
+img = cv2.imread(fn)
+img_copy = np.flip(img, axis = 2).copy()
+
+plt.imshow(img_copy)
+plt.show()
+
+img_brg_filtered = cv2.boxFilter(img, -1, (10,10))
+
+# puts image thresholds using RGB makes 3 boolean arrays depending on if pixel meets thresholds
+img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 218, img_brg_filtered[:, :, 0] <= 255))
+img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 131, img_brg_filtered[:, :, 1] <= 255)
+img_threshold_red = np.logical_and(img_brg_filtered[:, :, 2] >= 28, img_brg_filtered[:, :, 1] <= 140)
+
+# combines all three logical statements to find pixels that meet all three conditions
+img_green_buoys = np.logical_and(img_threshold_green, img_threshold_blue)
+img_red_buoys = np.logical_and(img_threshold_red, img_threshold_blue)
+
+fig, ax = plt.subplots(3, 3)
+
+ax[0, 0].imshow(img[:, :, 0], cmap = "Blues")
+ax[0, 0].title.set_text("Blue")
+ax[0, 1].imshow(img[:, :, 1], cmap = "Greens")
+ax[0, 1].title.set_text("Green")
+ax[0, 2].imshow(img[:, :, 2], cmap = "Reds")
+ax[0, 2].title.set_text("Red")
+
+ax[1, 0].imshow(img_brg_filtered[:, :, 0], cmap = "Blues")
+ax[1, 0].title.set_text("Blue")
+ax[1, 1].imshow(img_brg_filtered[:, :, 1], cmap = "Greens")
+ax[1, 1].title.set_text("Green")
+ax[1, 2].imshow(img_brg_filtered[:, :, 2], cmap = "Reds")
+ax[1, 2].title.set_text("Red")
+
+ax[2, 0].imshow(img_threshold_blue, cmap = "Blues")
+ax[2, 0].title.set_text("Blue")
+ax[2, 1].imshow(img_threshold_green, cmap = "Greens")
+ax[2, 1].title.set_text("Green")
+ax[2, 2].imshow(img_threshold_red, cmap = "Reds")
+ax[2, 2].title.set_text("Red")
+
+plt.show()
+
+#steps 13/14 of lab 15. looks at pixel intensity values of it's neighborhood and scales to 255
+contours_red = []
+contours_green = []
+img_points_red = cv2.boxFilter(img_red_buoys.astype(int), -1, (50, 50), normalize = False)
+img_points_green = cv2.boxFilter(img_green_buoys.astype(int), -1, (50, 50), normalize = False)
+
+if not(np.max(img_points_red) == 0):
+
+	img_points_red_value_scaled = (img_points_red * (255 / np.max(img_points_red))).astype(np.uint8)
+	thresh_red, img_out_red = cv2.threshold(img_points_red_value_scaled, 20, 255, cv2.THRESH_BINARY)
+	contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+if not(np.max(img_points_green) == 0):
+
+	img_points_green_value_scaled = (img_points_green * (255 / np.max(img_points_green))).astype(np.uint8)
+	thresh_green, img_out_green = cv2.threshold(img_points_green_value_scaled, 20, 255, cv2.THRESH_BINARY)
+	contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+fig, ax = plt.subplots(2, 2)
+
+ax[0, 0].imshow(img_points_green_value_scaled)
+ax[0, 0].title.set_text("Green Scaled")
+ax[0, 1].imshow(img_points_red_value_scaled)
+ax[0, 1].title.set_text("Red Scaled")
+
+ax[1, 0].imshow(img_out_green)
+ax[1, 0].title.set_text("Green Seperated")
+ax[1, 1].imshow(img_out_red)
+ax[1, 1].title.set_text("Red Seperated")
+
+plt.show()
+
+# makes empty lists to stor info about each contour (like making table out of lists)
+contour_dims_red = []
+contour_centers_red = []
+contour_centers_unscaled_red = []
+
+contour_dims_green = []
+contour_centers_green = []
+contour_centers_unscaled_green = []
+
+for contour in contours_red:
+
+	# finds dimensions of buoy using max recorded x-value and y-value
+	x = px_to_mm(np.max([item[0][0] for item in contour]), img.shape[1], "W") - px_to_mm(np.min([item[0][0] for item in contour]), img.shape[1], "W")
+	y = px_to_mm(np.max([item[0][1] for item in contour]), img.shape[0], "H") - px_to_mm(np.min([item[0][1] for item in contour]), img.shape[0], "H")
+	contour_dims_red.append((x, y))
+
+	# finds center of each contour
+	center_x, center_y = sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
+	contour_centers_unscaled_red.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))))
+	contour_centers_red.append((center_x, center_y))
+
+for contour in contours_green:
+
+	x = px_to_mm(np.max([item[0][0] for item in contour]), img.shape[1], "W") - px_to_mm(np.min([item[0][0] for item in contour]), img.shape[1], "W")
+	y = px_to_mm(np.max([item[0][1] for item in contour]), img.shape[0], "H") - px_to_mm(np.min([item[0][1] for item in contour]), img.shape[0], "H")
+	contour_dims_green.append((x, y))
+
+	center_x, center_y = sensor_position_px(int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour])), img.shape[1], img.shape[0])
+	contour_centers_unscaled_green.append((int(np.mean([item[0][0] for item in contour])), int(np.mean([item[0][1] for item in contour]))))
+	contour_centers_green.append((center_x, center_y))
+
+red_index = None
+
+if ((len(contour_dims_red) > 0) and (len(contour_dims_green) > 0)): # checks if we have at least 1 contour detected
+
+	if len(contour_dims_green) > len(contour_dims_red):
+
+		green_index = [item[0] for item in contour_dims_green].index(max([item[0] for item in contour_dims_green]))
+		green_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_green[green_index][0])
+		green_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_green[green_index][1])
+		img = cv2.circle(img, contour_centers_unscaled_green[green_index], 5, (0, 255, 0), -1)
+		green_angle_x, green_angle_y = get_angles(green_center_m_x, green_center_m_y)
+		green = green_angle_x
+
+		red_index = [np.abs(np.abs(item[0]) - contour_dims_green[green_index][0]) for item in contour_dims_red].index(min([np.abs(np.abs(item[0]) - contour_dims_green[green_index][0]) for item in contour_dims_red]))
+		red_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_red[red_index][0])
+		red_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_red[red_index][1])
+		img = cv2.circle(img, contour_centers_unscaled_red[red_index], 5, (0, 0, 255), -1)
+		red_angle_x, red_angle_y = get_angles(red_center_m_x, red_center_m_y)
+		red = red_angle_x
+
+	else:
+
+		# for each contour finds the index of the smallest contour
+		red_index = [item[0] for item in contour_dims_red].index(max([item[0] for item in contour_dims_red]))
+
+		# finds angle to the buoys
+		red_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_red[red_index][0])
+		red_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_red[red_index][1])
+		img = cv2.circle(img, contour_centers_unscaled_red[red_index], 5, (0, 0, 255), -1)
+		red_angle_x, red_angle_y = get_angles(red_center_m_x, red_center_m_y)
+		red = red_angle_x
+
+		green_index = [np.abs(np.abs(item[0]) - contour_dims_red[red_index][0]) for item in contour_dims_green].index(min([np.abs(np.abs(item[0]) - contour_dims_red[red_index][0]) for item in contour_dims_green]))
+
+		green_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_green[green_index][0])
+		green_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_green[green_index][1])
+		img = cv2.circle(img, contour_centers_unscaled_green[green_index], 5, (0, 255, 0), -1)
+		green_angle_x, green_angle_y = get_angles(green_center_m_x, green_center_m_y)
+		green = green_angle_x
+
+if len(contour_dims_green) > 0:
+
+	green_index = [item[0] for item in contour_dims_green].index(max([item[0] for item in contour_dims_green]))
+	green_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_green[green_index][0])
+	green_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_green[green_index][1])
+	img = cv2.circle(img, contour_centers_unscaled_green[green_index], 5, (0, 255, 0), -1)
+	green_angle_x, green_angle_y = get_angles(green_center_m_x, green_center_m_y)
+	green = green_angle_x
+
+if len(contour_dims_red) > 0:
+
+	# for each contour finds the index of the smallest contour
+	red_index = [item[0] for item in contour_dims_red].index(max([item[0] for item in contour_dims_red]))
+
+	# finds angle to the buoys
+	red_center_m_x = (((3.68 / 1000) / img.shape[1]) * contour_centers_red[red_index][0])
+	red_center_m_y = (((2.76 / 1000) * img.shape[0]) / contour_centers_red[red_index][1])
+	img = cv2.circle(img, contour_centers_unscaled_red[red_index], 5, (0, 0, 255), -1)
+	red_angle_x, red_angle_y = get_angles(red_center_m_x, red_center_m_y)
+	red = red_angle_x
+
+img = np.flip(img, axis = 2)
+
+fig, ax = plt.subplots(1, 2)
+
+ax[0].imshow(img_copy)
+ax[0].title.set_text("Original")
+
+ax[1].imshow(img)
+ax[1].title.set_text("Detection")
+
+plt.show()
