@@ -108,7 +108,7 @@ class BackSeat ():
 
 
 				if (self.__auv_state['heading'] != None):
-					
+
 					### ---------------------------------------------------------- #
 					### Here should be the request for a photo from the camera
 					### img = self.__camera.acquire_image()
@@ -137,7 +137,7 @@ class BackSeat ():
 						# NMEA requires a checksum on all the characters between the $ and the *
 						# you can use the BluefinMessages.checksum() function to calculate
 						# and write it like below. The checksum goes after the *
-						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+						msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}\r\n"
 						self.send_message(msg)
 
 						engine_started = True
@@ -154,7 +154,7 @@ class BackSeat ():
 							self.__current_time = datetime.datetime.utcnow().timestamp()
 							hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 							cmd = f"BPRMB,{hhmmss},0,,,0,0,1"
-							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}\r\n"
 							self.send_message(msg)
 							break
 
@@ -164,7 +164,7 @@ class BackSeat ():
 							self.__current_time = datetime.datetime.utcnow().timestamp()
 							hhmmss = datetime.datetime.fromtimestamp(self.__current_time).strftime('%H%M%S.%f')[:-4]
 							cmd = f"BPRMB,{hhmmss},{delta_rudder},1,0,{new_engine_speed},0,1"
-							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}"
+							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}\r\n"
 							self.send_message(msg)
 
 					time.sleep(1 / self.__warp)
