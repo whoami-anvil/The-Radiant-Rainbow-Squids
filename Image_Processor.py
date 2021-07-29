@@ -159,7 +159,7 @@ class ImageProcessor():
 
 			if (self.__camera_type == 'SIM'):
 
-				img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 155, img_brg_filtered[:, :, 1] <= 255)
+				img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 135, img_brg_filtered[:, :, 1] <= 255)
 
 			else:
 
