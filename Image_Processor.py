@@ -149,7 +149,15 @@ class ImageProcessor():
 
 			# puts image thresholds using RGB makes 3 boolean arrays depending on if pixel meets thresholds
 			img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 210, img_brg_filtered[:, :, 0] <= 255))
-			img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 197, img_brg_filtered[:, :, 1] <= 255)
+
+			if (self.__camera_type == 'SIM'):
+
+				img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 155, img_brg_filtered[:, :, 1] <= 255)
+
+			else:
+
+				img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 197, img_brg_filtered[:, :, 1] <= 255)
+
 			img_threshold_red = np.logical_and(img_brg_filtered[:, :, 2] >= 28, img_brg_filtered[:, :, 1] <= 140)
 
 			# combines all three logical statements to find pixels that meet all three conditions
@@ -192,13 +200,27 @@ class ImageProcessor():
 
 				img_points_red_value_scaled = (img_points_red * (255 / np.max(img_points_red))).astype(np.uint8)
 				thresh_red, img_out_red = cv2.threshold(img_points_red_value_scaled, 20, 255, cv2.THRESH_BINARY)
-				contour_img_red, contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+				if (cv2.version == '3.2.0'):
+
+					_, contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+				else:
+
+					contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
 			if not(np.max(img_points_green) == 0):
 
 				img_points_green_value_scaled = (img_points_green * (255 / np.max(img_points_green))).astype(np.uint8)
 				thresh_green, img_out_green = cv2.threshold(img_points_green_value_scaled, 20, 255, cv2.THRESH_BINARY)
-				contour_img_green, contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+				if (cv2.version == '3.2.0'):
+
+					_, contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+				else:
+
+					contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
 			# makes empty lists to stor info about each contour (like making table out of lists)
 			contour_dims_red = []
