@@ -125,7 +125,7 @@ class BackSeat ():
 
 					### turn your output message into a BPRMB request!
 
-					if not(engine_started) and (self.__current_time - self.__start_time) > 2:
+					if not(engine_started) and (self.__current_time - self.__start_time) > 0:
 
 						## We want to change the speed. For now we will always use the RPM (1500 Max)
 						self.__current_time = datetime.datetime.utcnow().timestamp()
@@ -142,7 +142,7 @@ class BackSeat ():
 
 						engine_started = True
 
-					elif (self.__current_time - self.__start_time) > 3:
+					elif (self.__current_time - self.__start_time) > 1:
 
 						# Z - We need to add decide command and save outputs
 						delta_rudder, new_engine_speed = self.__autonomy.decide(self.__auv_state, green, red, order, sensor_type = 'ANGLE')
@@ -167,7 +167,7 @@ class BackSeat ():
 							msg = f"${cmd}*{hex(BluefinMessages.checksum(cmd))[2:]}\r\n"
 							self.send_message(msg)
 
-					time.sleep(1 / self.__warp)
+					time.sleep(0.25 / self.__warp)
 
 		except Exception as e:
 
