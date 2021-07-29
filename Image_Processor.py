@@ -140,7 +140,7 @@ class ImageProcessor():
 			# log the image
 			fn = self.__image_dir / f"frame_{int(datetime.datetime.utcnow().timestamp())}.jpg"
 			fns = self.__image_dir / f"frame_{int(datetime.datetime.utcnow().timestamp())}_solved.jpg"
-			cv2.imwrite(str(fn), image)
+			cv2.imwrite(str(fn), np.flipud(image))
 
 			# process and find the buoys!
 			# loads image, resizes, and applies box filter
@@ -150,7 +150,7 @@ class ImageProcessor():
 
 			else:
 
-				img = np.flipud(cv2.imread(str(fn))).copy()
+				img = cv2.imread(str(fn)).copy()
 
 			img_brg_filtered = cv2.boxFilter(img, -1, (10,10))
 
@@ -165,7 +165,7 @@ class ImageProcessor():
 
 				img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 197, img_brg_filtered[:, :, 1] <= 255)
 
-			img_threshold_red = np.logical_and(img_brg_filtered[:, :, 2] >= 28, img_brg_filtered[:, :, 1] <= 140)
+			img_threshold_red = np.logical_and(img_brg_filtered[:, :, 2] >= 40, img_brg_filtered[:, :, 1] <= 140)
 
 			# combines all three logical statements to find pixels that meet all three conditions
 			walls = np.logical_and(img_threshold_blue, np.logical_not(img_threshold_green))
