@@ -8,14 +8,18 @@ Created on Thu Jul 22 11:30:37 2021
 ### JRE: for simulation only!
 ### MDM: added Rasperry Pi V2 camera
 
+import os
 import sys
 import pathlib
 import datetime
 
 import time
 import numpy as np
-import picamera
-import picamera.array
+
+if os.uname().nodename == 'auvpi':
+
+	import picamera
+	import picamera.array
 
 import cv2
 import matplotlib.pyplot as plt
@@ -144,13 +148,14 @@ class ImageProcessor():
 			img_brg_filtered = cv2.boxFilter(img, -1, (10,10))
 
 			# puts image thresholds using RGB makes 3 boolean arrays depending on if pixel meets thresholds
-			img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 218, img_brg_filtered[:, :, 0] <= 255))
-			img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 131, img_brg_filtered[:, :, 1] <= 255)
+			img_threshold_blue = np.logical_not(np.logical_and(img_brg_filtered[:, :, 0] >= 210, img_brg_filtered[:, :, 0] <= 255))
+			img_threshold_green = np.logical_and(img_brg_filtered[:, :, 1] >= 197, img_brg_filtered[:, :, 1] <= 255)
 			img_threshold_red = np.logical_and(img_brg_filtered[:, :, 2] >= 28, img_brg_filtered[:, :, 1] <= 140)
 
 			# combines all three logical statements to find pixels that meet all three conditions
-			img_green_buoys = np.logical_and(img_threshold_green, img_threshold_blue)
-			img_red_buoys = np.logical_and(img_threshold_red, img_threshold_blue)
+			walls = np.logical_and(img_threshold_blue, np.logical_not(img_threshold_green))
+			img_green_buoys = img_threshold_green
+			img_red_buoys = img_threshold_red
 
 			#fig, ax = plt.subplots(3, 3)
 
