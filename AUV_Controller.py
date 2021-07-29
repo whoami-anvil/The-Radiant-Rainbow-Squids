@@ -87,6 +87,10 @@ class AUVController ():
 
 					return 25, 750
 
+				elif self.__search_direction == None:
+
+					return 0, 750
+
 				else:
 
 					return -25, 750
@@ -346,7 +350,7 @@ class AUVController ():
 		rpm_speed = 750
 
 		delta_angle *= (rpm_speed / 500)
-		
+
 		print(f"Delta Angle: {delta_angle}")
 		#if delta_angle > 0:
 
