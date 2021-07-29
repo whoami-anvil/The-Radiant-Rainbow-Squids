@@ -201,7 +201,7 @@ class ImageProcessor():
 				img_points_red_value_scaled = (img_points_red * (255 / np.max(img_points_red))).astype(np.uint8)
 				thresh_red, img_out_red = cv2.threshold(img_points_red_value_scaled, 20, 255, cv2.THRESH_BINARY)
 
-				if (cv2.version == '3.2.0'):
+				if (cv2.__version__ == '3.2.0'):
 
 					_, contours_red, hierarchy_red = cv2.findContours(img_out_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
@@ -214,7 +214,7 @@ class ImageProcessor():
 				img_points_green_value_scaled = (img_points_green * (255 / np.max(img_points_green))).astype(np.uint8)
 				thresh_green, img_out_green = cv2.threshold(img_points_green_value_scaled, 20, 255, cv2.THRESH_BINARY)
 
-				if (cv2.version == '3.2.0'):
+				if (cv2.__version__ == '3.2.0'):
 
 					_, contours_green, hierarchy_green = cv2.findContours(img_out_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
