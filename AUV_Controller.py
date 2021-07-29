@@ -373,11 +373,11 @@ class AUVController ():
 			turn_angle = int(np.round(np.abs(delta_angle), 0))
 
 		# which way do we have to turn
-		if delta_angle < 0: # need to turn to right!
+		if delta_angle > 0: # need to turn to right!
 
 			turn_angle = (turn_angle * -1)
 
-		elif delta_angle > 0: # need to turn to left!
+		elif delta_angle < 0: # need to turn to left!
 
 			pass
 
