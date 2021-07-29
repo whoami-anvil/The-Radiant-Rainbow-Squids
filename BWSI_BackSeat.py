@@ -118,7 +118,7 @@ class BackSeat ():
 
 					red, green, order = self.__buoy_detector.run(self.__auv_state)
 					### ---------------------------------------------------------- #
-
+					print(int(datetime.datetime.utcnow().timestamp()))
 
 					### self.__autonomy.decide() probably goes here!
 					### ---------------------------------------------------------- #

@@ -28,7 +28,7 @@ class AUVController ():
 		self.__order = None
 		self.__search = False
 		self.__search_direction = "left"
-		self.__search_timer = 30
+		self.__search_timer = 120
 
 		# assume we want to be going the direction we're going for now
 		self.__desired_heading = None
@@ -94,7 +94,7 @@ class AUVController ():
 			else:
 
 				self.__search = False
-				self.__search_timer = 30
+				self.__search_timer = 120
 
 		if (order != None):
 
@@ -345,6 +345,9 @@ class AUVController ():
 		# editing rudder speed
 		rpm_speed = 750
 
+		delta_angle *= (rpm_speed / 500)
+		
+		print(f"Delta Angle: {delta_angle}")
 		#if delta_angle > 0:
 
 		#	rpm_speed = int(np.round((1500 - (750 / (1 + 750 * np.exp(-0.5 * delta_angle)))), 0))
