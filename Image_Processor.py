@@ -140,7 +140,7 @@ class ImageProcessor():
 			# log the image
 			fn = self.__image_dir / f"frame_{int(datetime.datetime.utcnow().timestamp())}.jpg"
 			fns = self.__image_dir / f"frame_{int(datetime.datetime.utcnow().timestamp())}_solved.jpg"
-			cv2.imwrite(str(fn), np.flipud(image))
+			cv2.imwrite(str(fn), np.fliplr(np.flipud(image)))
 
 			# process and find the buoys!
 			# loads image, resizes, and applies box filter
