@@ -16,7 +16,7 @@ import datetime
 import time
 import numpy as np
 
-if os.uname().nodename == 'auvpi':
+if ((os.uname().nodename == 'auvpi') or (os.uname().nodename == 'sharkpi')):
 
 	import picamera
 	import picamera.array
